@@ -63,4 +63,10 @@ func GetAllPendingEscrowsHandler(w http.ResponseWriter, r *http.Request) {
     json.NewEncoder(w).Encode(pendingEscrows)
 }
 
+//get all disputed escrow 
+func GetAllDisputedEscrowsHandler(w http.ResponseWriter, r * http.Request){
+	disputedEscrows := GetAllDisputedEscrows()
 
+	w.Header().Set("Content-Type","application/json")
+	json.NewEncoder(w).Encode(disputedEscrows)
+}

@@ -11,6 +11,7 @@ import (
 // In-memory store for simplicity
 var escrowStore = make(map[string]*models.Escrow)
 
+//create an escrow
 func CreateEscrow(buyerID, sellerID string, amount float64, description string) (*models.Escrow, error) {
     escrow := &models.Escrow{
         ID:          generateID(),
@@ -30,6 +31,7 @@ func generateID() string {
     return uuid.New().String()
 }
 
+//release funds from escrow
 func ReleaseFunds(escrowID string) error {
     escrow, exists := escrowStore[escrowID]
     if !exists {
@@ -49,6 +51,7 @@ func ReleaseFunds(escrowID string) error {
     return nil
 }
 
+//dispute escrow
 func DisputeEscrow(escrowID string) error {
     escrow, exists := escrowStore[escrowID]
     if !exists {
@@ -79,5 +82,17 @@ func GetAllPendingEscrows() []*models.Escrow {
         }
     }
     return pendingEscrows
+}
+
+
+// GetAllDisputedEscrows returns a list of all escrows that are currently in the disputed state.
+func GetAllDisputedEscrows() []*models.Escrow {
+    var disputedEscrows []*models.Escrow
+    for _, escrow := range escrowStore {
+        if escrow.Status == models.StatusDisputed {
+            disputedEscrows = append(disputedEscrows, escrow)
+        }
+    }
+    return disputedEscrows
 }
 
