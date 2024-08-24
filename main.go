@@ -5,8 +5,10 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/org-45/escrow-agent/internal/auth"
 	"github.com/org-45/escrow-agent/internal/db"
 	"github.com/org-45/escrow-agent/internal/escrow"
+	"github.com/org-45/escrow-agent/internal/middleware"
 	"github.com/rs/cors"
 )
 
@@ -15,12 +17,18 @@ func main() {
 
 	r := mux.NewRouter()
 
-	r.HandleFunc("/escrow", escrow.CreateEscrowHandler).Methods("POST")
-	r.HandleFunc("/escrow/{id}/release", escrow.ReleaseFundsHandler).Methods("POST")
-	r.HandleFunc("/escrow/{id}/dispute", escrow.DisputeEscrowHandler).Methods("POST")
+	//public routes
+	r.HandleFunc("/login", auth.LoginHandler).Methods("POST")
 
-	r.HandleFunc("/escrow/pending", escrow.GetAllPendingEscrowsHandler).Methods("GET")
-	r.HandleFunc("/escrow/disputed", escrow.GetAllDisputedEscrowsHandler).Methods("GET")
+	//protected routes
+	api := r.PathPrefix("/api").Subrouter()
+	api.Use(middleware.JWTAuthMiddleware)
+	api.HandleFunc("/escrow", escrow.CreateEscrowHandler).Methods("POST")
+	api.HandleFunc("/escrow/{id}/release", escrow.ReleaseFundsHandler).Methods("POST")
+	api.HandleFunc("/escrow/{id}/dispute", escrow.DisputeEscrowHandler).Methods("POST")
+
+	api.HandleFunc("/escrow/pending", escrow.GetAllPendingEscrowsHandler).Methods("GET")
+	api.HandleFunc("/escrow/disputed", escrow.GetAllDisputedEscrowsHandler).Methods("GET")
 
 	// setup CORS
 	c := cors.New(cors.Options{

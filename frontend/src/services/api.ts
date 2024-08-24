@@ -2,6 +2,10 @@ import axios from 'axios';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
 
+const getAuthToken = () => {
+    return localStorage.getItem('jwt');
+};
+
 export interface Escrow {
     id: string;
     buyer_id: string;
@@ -28,10 +32,11 @@ export interface EscrowAPI {
 
 export const createEscrow = async (escrowData: Omit<EscrowAPI, 'ID' | 'Status' | 'CreatedAt'>): Promise<EscrowAPI> => {
     try {
-        console.log(escrowData, 'dsdd');
+        const token = getAuthToken();
         const response = await axios.post<any>(`${API_BASE_URL}/escrow`, escrowData, {
             headers: {
                 'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
             },
         });
         return response.data;
@@ -42,8 +47,15 @@ export const createEscrow = async (escrowData: Omit<EscrowAPI, 'ID' | 'Status' |
 };
 
 export const getAllPendingEscrows = async (): Promise<EscrowAPI[]> => {
+    const token = getAuthToken();
+
     try {
-        const response = await axios.get<EscrowAPI[]>(`${API_BASE_URL}/escrow/pending`);
+        const response = await axios.get<EscrowAPI[]>(`${API_BASE_URL}/escrow/pending`, {
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+        });
         return response.data;
     } catch (error) {
         console.error('Error fetching pending escrows:', error);
@@ -52,8 +64,14 @@ export const getAllPendingEscrows = async (): Promise<EscrowAPI[]> => {
 };
 
 export const releaseFunds = async (escrowId: string): Promise<void> => {
+    const token = getAuthToken();
     try {
-        await axios.post(`${API_BASE_URL}/escrow/${escrowId}/release`);
+        await axios.post(`${API_BASE_URL}/escrow/${escrowId}/release`, {
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+        });
     } catch (error) {
         console.error('Error releasing funds:', error);
         throw error;
@@ -61,8 +79,14 @@ export const releaseFunds = async (escrowId: string): Promise<void> => {
 };
 
 export const disputeEscrow = async (escrowId: string): Promise<void> => {
+    const token = getAuthToken();
     try {
-        await axios.post(`${API_BASE_URL}/escrow/${escrowId}/dispute`);
+        await axios.post(`${API_BASE_URL}/escrow/${escrowId}/dispute`, {
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+        });
     } catch (error) {
         console.error('Error disputing escrow:', error);
         throw error;

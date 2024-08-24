@@ -1,9 +1,11 @@
 import React, {useEffect, useState} from 'react';
 import {getAllPendingEscrows, createEscrow, EscrowAPI} from '../services/api';
+import {useRouter} from 'next/router';
 
 const Home: React.FC = () => {
     const [pendingEscrows, setPendingEscrows] = useState<EscrowAPI[]>([]);
     const [error, setError] = useState<string | null>(null);
+    const router = useRouter();
 
     const [newEscrow, setNewEscrow] = useState({
         BuyerID: '',
@@ -13,17 +15,22 @@ const Home: React.FC = () => {
     });
 
     useEffect(() => {
-        const fetchPendingEscrows = async () => {
-            try {
-                const escrows = await getAllPendingEscrows();
-                setPendingEscrows(escrows);
-            } catch (err) {
-                setError('Failed to fetch pending escrows');
-                console.error(err);
-            }
-        };
-
-        fetchPendingEscrows();
+        // Check if JWT token exists
+        const token = localStorage.getItem('jwt');
+        if (!token) {
+            router.push('/login'); // Redirect to login if not authenticated
+        } else {
+            const fetchPendingEscrows = async () => {
+                try {
+                    const escrows = await getAllPendingEscrows();
+                    setPendingEscrows(escrows);
+                } catch (err) {
+                    setError('Failed to fetch pending escrows');
+                    console.error(err);
+                }
+            };
+            fetchPendingEscrows();
+        }
     }, []);
 
     const handleCreateEscrow = async (event: React.FormEvent) => {
