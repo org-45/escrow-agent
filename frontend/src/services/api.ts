@@ -26,9 +26,14 @@ export interface EscrowAPI {
     Description: string;
 }
 
-export const createEscrow = async (escrowData: Omit<EscrowAPI, 'id' | 'status' | 'created_at'>): Promise<EscrowAPI> => {
+export const createEscrow = async (escrowData: Omit<EscrowAPI, 'ID' | 'Status' | 'CreatedAt'>): Promise<EscrowAPI> => {
     try {
-        const response = await axios.post<EscrowAPI>(`${API_BASE_URL}/escrow`, escrowData);
+        console.log(escrowData, 'dsdd');
+        const response = await axios.post<any>(`${API_BASE_URL}/escrow`, escrowData, {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
         return response.data;
     } catch (error) {
         console.error('Error creating escrow:', error);
@@ -46,4 +51,20 @@ export const getAllPendingEscrows = async (): Promise<EscrowAPI[]> => {
     }
 };
 
-// Add more functions for other API endpoints as needed
+export const releaseFunds = async (escrowId: string): Promise<void> => {
+    try {
+        await axios.post(`${API_BASE_URL}/escrow/${escrowId}/release`);
+    } catch (error) {
+        console.error('Error releasing funds:', error);
+        throw error;
+    }
+};
+
+export const disputeEscrow = async (escrowId: string): Promise<void> => {
+    try {
+        await axios.post(`${API_BASE_URL}/escrow/${escrowId}/dispute`);
+    } catch (error) {
+        console.error('Error disputing escrow:', error);
+        throw error;
+    }
+};

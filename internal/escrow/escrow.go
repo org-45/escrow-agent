@@ -2,6 +2,7 @@ package escrow
 
 import (
 	"errors"
+	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -10,7 +11,8 @@ import (
 )
 
 // create an escrow
-func CreateEscrow(buyerID, sellerID string, amount float64, description string) (*models.Escrow, error) {
+func CreateEscrow(buyerID string, sellerID string, amount float64, description string) (*models.Escrow, error) {
+
 	escrow := &models.Escrow{
 		ID:          generateID(),
 		BuyerID:     buyerID,
@@ -21,7 +23,7 @@ func CreateEscrow(buyerID, sellerID string, amount float64, description string) 
 		Description: description,
 	}
 
-	//insert new escrow into the database
+	log.Printf("Received Escrow Data: %+v\n", escrow)
 
 	query := `INSERT INTO escrows (id, buyer_id, seller_id, amount, status, created_at, description)
 							VALUES ($1, $2, $3, $4, $5, $6, $7)	`

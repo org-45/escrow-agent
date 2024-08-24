@@ -33,3 +33,10 @@ This project is an open-source general-purpose escrow agent designed to facilita
 - **Extensibility**
   - The platform is designed for flexibility, allowing the integration of various payment gateways.
   - **Goal**: Build a comprehensive solution that contributors can extend, particularly for specific gateways.
+
+
+#### How to run?
+
+```
+docker compose up --build -d
+```
