@@ -15,10 +15,9 @@ const Home: React.FC = () => {
     });
 
     useEffect(() => {
-        // Check if JWT token exists
         const token = localStorage.getItem('jwt');
         if (!token) {
-            router.push('/login'); // Redirect to login if not authenticated
+            router.push('/login');
         } else {
             const fetchPendingEscrows = async () => {
                 try {
@@ -31,7 +30,7 @@ const Home: React.FC = () => {
             };
             fetchPendingEscrows();
         }
-    }, []);
+    }, [router]);
 
     const handleCreateEscrow = async (event: React.FormEvent) => {
         event.preventDefault();

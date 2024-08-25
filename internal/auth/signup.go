@@ -6,6 +6,9 @@ import (
 
 	"github.com/org-45/escrow-agent/internal/db"
 	"golang.org/x/crypto/bcrypt"
+
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgerrcode"
 )
 
 type SignupRequest struct {
@@ -33,6 +36,12 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 
 	_, err = db.DB.Exec("INSERT INTO users (username, password_hash) VALUES ($1, $2)", req.Username, hashedPassword)
 	if err != nil {
+
+		if pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == pgerrcode.UniqueViolation {
+			http.Error(w, "Username already exists", http.StatusConflict)
+			return
+		}
+
 		http.Error(w, "Failed to create user", http.StatusInternalServerError)
 		return
 	}

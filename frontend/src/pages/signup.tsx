@@ -22,8 +22,12 @@ const Signup: React.FC<SignupProps> = ({onSignupSuccess}) => {
             if (response.status === 201) {
                 onSignupSuccess();
             }
-        } catch (err) {
-            setError('Signup failed. Please try again.');
+        } catch (err: any) {
+            if (err.response && err.response.status === 409) {
+                setError('Username already exists. Please choose a different username.');
+            } else {
+                setError('Signup failed. Please try again.');
+            }
             console.error(err);
         }
     };
