@@ -57,7 +57,7 @@ const Home: React.FC = () => {
             {error && <p>{error}</p>}
 
             <ul>
-                {pendingEscrows.map(escrow => (
+                {pendingEscrows?.map(escrow => (
                     <li key={escrow.ID}>
                         {escrow.BuyerID} owes {escrow.Amount} to {escrow.SellerID}
                     </li>
