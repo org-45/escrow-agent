@@ -19,6 +19,7 @@ func main() {
 
 	//public routes
 	r.HandleFunc("/login", auth.LoginHandler).Methods("POST")
+	r.HandleFunc("/signup", auth.SignupHandler).Methods("POST")
 
 	//protected routes
 	api := r.PathPrefix("/api").Subrouter()

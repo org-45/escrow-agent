@@ -40,3 +40,34 @@ This project is an open-source general-purpose escrow agent designed to facilita
 ```
 docker compose up --build -d
 ```
+
+```
+curl -X POST http://localhost:8080/signup \
+-H "Content-Type: application/json" \
+-d '{
+      "username": "testuser",
+      "password": "testpassword"
+    }'
+```
+
+```
+curl -X POST http://localhost:8080/login \
+-H "Content-Type: application/json" \
+-d '{
+      "username": "testuser",
+      "password": "testpassword"
+    }'
+
+```
+
+```
+curl -X POST http://localhost:8080/api/escrow \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer your-jwt-token" \
+-d '{
+      "buyer_id": "buyer123",
+      "seller_id": "seller456",
+      "amount": 500.0,
+      "description": "Payment for services"
+    }'
+```
