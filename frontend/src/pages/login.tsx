@@ -1,13 +1,15 @@
-// pages/login.tsx
 import React, {useState} from 'react';
 import axios from 'axios';
 import {useRouter} from 'next/router';
 
-const Login: React.FC = () => {
+interface LoginProps {
+    onLoginSuccess: (token: string) => void;
+}
+
+const Login: React.FC<LoginProps> = ({onLoginSuccess}) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
-    const router = useRouter();
 
     const handleLogin = async (event: React.FormEvent) => {
         event.preventDefault();
@@ -18,11 +20,8 @@ const Login: React.FC = () => {
             });
             const {token} = response.data;
 
-            // Store the token in localStorage
-            localStorage.setItem('jwt', token);
-
-            // Redirect to a protected page or home page
-            router.push('/');
+            onLoginSuccess(token);
+            
         } catch (err) {
             setError('Login failed. Please check your username and password.');
             console.error(err);

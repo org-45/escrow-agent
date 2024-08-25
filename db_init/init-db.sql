@@ -10,3 +10,10 @@ CREATE TABLE IF NOT EXISTS escrows (
     disputed_at TIMESTAMP,
     description TEXT
 );
+
+CREATE TABLE IF NOT EXISTS users(
+	id SERIAL PRIMARY KEY,
+	username VARCHAR(50),
+	password_hash VARCHAR(255) NOT NULL,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)

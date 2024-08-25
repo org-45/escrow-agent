@@ -1,13 +1,15 @@
-// pages/signup.tsx
 import React, {useState} from 'react';
 import axios from 'axios';
 import {useRouter} from 'next/router';
 
-const Signup: React.FC = () => {
+interface SignupProps {
+    onSignupSuccess: () => void;
+}
+
+const Signup: React.FC<SignupProps> = ({onSignupSuccess}) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
-    const router = useRouter();
 
     const handleSignup = async (event: React.FormEvent) => {
         event.preventDefault();
@@ -18,7 +20,7 @@ const Signup: React.FC = () => {
             });
 
             if (response.status === 201) {
-                router.push('/login');
+                onSignupSuccess();
             }
         } catch (err) {
             setError('Signup failed. Please try again.');

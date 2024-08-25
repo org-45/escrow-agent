@@ -1,112 +1,49 @@
-import React, {useEffect, useState} from 'react';
-import {getAllPendingEscrows, createEscrow, EscrowAPI} from '../services/api';
+// pages/index.tsx
+import React, {useState, useEffect} from 'react';
 import {useRouter} from 'next/router';
+import Signup from './signup';
+import Login from './login';
+import Home from './home'; 
 
-const Home: React.FC = () => {
-    const [pendingEscrows, setPendingEscrows] = useState<EscrowAPI[]>([]);
-    const [error, setError] = useState<string | null>(null);
+const Main: React.FC = () => {
+    const [jwt, setJwt] = useState<string | null>(null);
+    const [currentPage, setCurrentPage] = useState<'signup' | 'login' | 'home'>('signup');
     const router = useRouter();
 
-    const [newEscrow, setNewEscrow] = useState({
-        BuyerID: '',
-        SellerID: '',
-        Amount: 0,
-        Description: '',
-    });
-
     useEffect(() => {
-        // Check if JWT token exists
         const token = localStorage.getItem('jwt');
-        if (!token) {
-            router.push('/login'); // Redirect to login if not authenticated
+        if (token) {
+            setJwt(token);
+            setCurrentPage('home');
         } else {
-            const fetchPendingEscrows = async () => {
-                try {
-                    const escrows = await getAllPendingEscrows();
-                    setPendingEscrows(escrows);
-                } catch (err) {
-                    setError('Failed to fetch pending escrows');
-                    console.error(err);
-                }
-            };
-            fetchPendingEscrows();
+            setCurrentPage('signup');
         }
     }, []);
 
-    const handleCreateEscrow = async (event: React.FormEvent) => {
-        event.preventDefault();
-        try {
-            const escrowData = {
-                BuyerID: newEscrow.BuyerID,
-                SellerID: newEscrow.SellerID,
-                Amount: newEscrow.Amount,
-                Description: newEscrow.Description,
-            };
-
-            const escrow = await createEscrow(escrowData);
-            setPendingEscrows([...pendingEscrows, escrow]);
-            setNewEscrow({BuyerID: '', SellerID: '', Amount: 0, Description: ''});
-        } catch (err) {
-            setError('Failed to create escrow');
-            console.error(err);
-        }
+    const handleSignupSuccess = () => {
+        setCurrentPage('login');
     };
 
-    return (
-        <div>
-            <h1>Pending Escrows</h1>
-            {error && <p>{error}</p>}
+    const handleLoginSuccess = (token: string) => {
+        localStorage.setItem('jwt', token);
+        setJwt(token);
+        setCurrentPage('home');
+        router.push('/');
+    };
 
-            <ul>
-                {pendingEscrows.map(escrow => (
-                    <li key={escrow.ID}>
-                        {escrow.BuyerID} owes {escrow.Amount} to {escrow.SellerID}
-                    </li>
-                ))}
-            </ul>
+    if (currentPage === 'signup') {
+        return <Signup onSignupSuccess={handleSignupSuccess} />;
+    }
 
-            <h2>Create New Escrow</h2>
-            <form onSubmit={handleCreateEscrow}>
-                <div>
-                    <label>Buyer ID:</label>
-                    <input
-                        type="text"
-                        value={newEscrow.BuyerID}
-                        onChange={e => setNewEscrow({...newEscrow, BuyerID: e.target.value})}
-                        required
-                    />
-                </div>
-                <div>
-                    <label>Seller ID:</label>
-                    <input
-                        type="text"
-                        value={newEscrow.SellerID}
-                        onChange={e => setNewEscrow({...newEscrow, SellerID: e.target.value})}
-                        required
-                    />
-                </div>
-                <div>
-                    <label>Amount:</label>
-                    <input
-                        type="number"
-                        value={newEscrow.Amount}
-                        onChange={e => setNewEscrow({...newEscrow, Amount: parseFloat(e.target.value)})}
-                        required
-                    />
-                </div>
-                <div>
-                    <label>Description:</label>
-                    <input
-                        type="text"
-                        value={newEscrow.Description}
-                        onChange={e => setNewEscrow({...newEscrow, Description: e.target.value})}
-                        required
-                    />
-                </div>
-                <button type="submit">Create Escrow</button>
-            </form>
-        </div>
-    );
+    if (currentPage === 'login') {
+        return <Login onLoginSuccess={handleLoginSuccess} />;
+    }
+
+    if (currentPage === 'home') {
+        return <Home />;
+    }
+
+    return null;
 };
 
-export default Home;
+export default Main;
