@@ -30,7 +30,6 @@ This project is an open-source general-purpose escrow agent designed to facilita
   - Storage of agreement documents in S3 buckets.
   - In case of conflict, the service holds all relevant documents for escalation.
 
-
 - **Extensibility**
   - The platform is designed for flexibility, allowing the integration of various payment gateways.
   - **Goal**: Build a comprehensive solution that contributors can extend, particularly for specific gateways.
