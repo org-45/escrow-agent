@@ -8,8 +8,8 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o main .
+RUN go install github.com/codegangsta/gin@latest
 
 EXPOSE 8080
 
-CMD ["./main"]
+CMD ["gin", "--appPort", "8080", "run", "main.go"]
