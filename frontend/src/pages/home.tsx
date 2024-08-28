@@ -1,6 +1,7 @@
-import React, {useEffect, useState} from 'react';
+import React, {ChangeEvent, FormEvent, useEffect, useState} from 'react';
 import {getAllPendingEscrows, createEscrow, EscrowAPI} from '../services/api';
 import {useRouter} from 'next/router';
+import axios from 'axios';
 
 const Home: React.FC = () => {
     const [pendingEscrows, setPendingEscrows] = useState<EscrowAPI[]>([]);
@@ -13,6 +14,9 @@ const Home: React.FC = () => {
         Amount: 0,
         Description: '',
     });
+
+    const [file, setFile] = useState<File | null>(null);
+    const [uploadMessage, setUploadMessage] = useState<string>('');
 
     useEffect(() => {
         const token = localStorage.getItem('jwt');
@@ -48,6 +52,43 @@ const Home: React.FC = () => {
         } catch (err) {
             setError('Failed to create escrow');
             console.error(err);
+        }
+    };
+
+    const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+        if (event.target.files && event.target.files.length > 0) {
+            setFile(event.target.files[0]);
+        }
+    };
+
+    const handleFileUpload = async (event: FormEvent) => {
+        event.preventDefault();
+
+        if (!file) {
+            setUploadMessage('Please select a file to upload.');
+            return;
+        }
+
+        const token = localStorage.getItem('jwt');
+
+        if (!token) {
+            setUploadMessage('You must be logged in to upload files.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const response = await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/upload`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            setUploadMessage(`File uploaded successfully: ${response.data.file_url}`);
+        } catch (error: any) {
+            setUploadMessage(`Failed to upload file: ${error.message}`);
         }
     };
 
@@ -104,6 +145,14 @@ const Home: React.FC = () => {
                 </div>
                 <button type="submit">Create Escrow</button>
             </form>
+            <h4>File upload</h4>
+            <form onSubmit={handleFileUpload}>
+                <div>
+                    <input type="file" onChange={handleFileChange} />
+                </div>
+                <button type="submit">Upload File</button>
+            </form>
+            {uploadMessage && <p>{uploadMessage}</p>}
         </div>
     );
 };

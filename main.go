@@ -8,6 +8,7 @@ import (
 	"github.com/org-45/escrow-agent/internal/auth"
 	"github.com/org-45/escrow-agent/internal/db"
 	"github.com/org-45/escrow-agent/internal/escrow"
+	"github.com/org-45/escrow-agent/internal/fileupload"
 	"github.com/org-45/escrow-agent/internal/middleware"
 	"github.com/rs/cors"
 )
@@ -30,6 +31,8 @@ func main() {
 
 	api.HandleFunc("/escrow/pending", escrow.GetAllPendingEscrowsHandler).Methods("GET")
 	api.HandleFunc("/escrow/disputed", escrow.GetAllDisputedEscrowsHandler).Methods("GET")
+
+	api.HandleFunc("/upload", fileupload.UploadHandler).Methods("POST")
 
 	// setup CORS
 	c := cors.New(cors.Options{

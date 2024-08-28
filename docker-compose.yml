@@ -8,18 +8,22 @@ services:
       - "8080:8080"
     depends_on:
       - db
+      - minio
     env_file:
       - .env
     environment:
-      - DB_HOST=${DB_HOST}
-      - DB_PORT=${DB_PORT}
+      - DB_HOST=db
+      - DB_PORT=5432
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
-    volumes:
-      - ./:/app
-      - /app/node_modules
-
+      - MINIO_ENDPOINT=http://minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - MINIO_BUCKET_NAME=escrow-documents
+      - MINIO_REGION=us-east-1
+    networks:
+      - escrow-network
 
   db:
     image: postgres:13
@@ -33,6 +37,13 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./db_init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - escrow-network
 
   frontend:
     build:
@@ -43,8 +54,27 @@ services:
     environment:
       - NEXT_PUBLIC_API_BASE_URL=http://localhost:8080/api
       - NEXT_PUBLIC_BASE_URL=http://localhost:8080
+    networks:
+      - escrow-network
+
+  minio:
+    image: minio/minio
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
     volumes:
-    - ./frontend:/app
-    - /app/node_modules
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - escrow-network
+
 volumes:
   postgres_data:
+  minio_data:
+
+networks:
+  escrow-network:
