@@ -1,14 +1,68 @@
 package escrow
 
 import (
+	"database/sql"
+	"encoding/json"
 	"errors"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/org-45/escrow-agent/internal/db"
 	"github.com/org-45/escrow-agent/pkg/models"
 )
+
+type Customer struct {
+	Email       string `json:"email"`
+	FirstName   string `json:"first_name"`
+	MiddleName  string `json:"middle_name,omitempty"`
+	LastName    string `json:"last_name"`
+	Line1       string `json:"line1"`
+	Line2       string `json:"line2,omitempty"`
+	City        string `json:"city"`
+	State       string `json:"state"`
+	Country     string `json:"country"`
+	PostCode    string `json:"post_code"`
+	PhoneNumber string `json:"phone_number"`
+}
+
+func CreateCustomer(customer Customer) error {
+	query := `
+		INSERT INTO customers (email, first_name, middle_name, last_name, line1, line2, city, state, country, post_code, phone_number)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+	`
+	_, err := db.DB.Exec(query, customer.Email, customer.FirstName, customer.MiddleName, customer.LastName, customer.Line1, customer.Line2, customer.City, customer.State, customer.Country, customer.PostCode, customer.PhoneNumber)
+	return err
+}
+
+func CreateCustomerHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var customer Customer
+	err := json.NewDecoder(r.Body).Decode(&customer)
+	if err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+
+	err = CreateCustomer(customer)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Customer could not be created", http.StatusInternalServerError)
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Customer created successfully"})
+}
 
 // create an escrow
 func CreateEscrow(buyerID string, sellerID string, amount float64, description string) (*models.Escrow, error) {

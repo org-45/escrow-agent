@@ -34,6 +34,8 @@ func main() {
 
 	api.HandleFunc("/upload", fileupload.UploadHandler).Methods("POST")
 
+	api.HandleFunc("/customer", escrow.CreateCustomerHandler).Methods("POST")
+
 	// setup CORS
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"},
