@@ -70,3 +70,5 @@ curl -X POST http://localhost:8080/api/escrow \
       "description": "Payment for services"
     }'
 ```
+
+This project is tested with BrowserStack 
