@@ -3,7 +3,12 @@ import {getAllPendingEscrows, createEscrow, EscrowAPI} from '../services/api';
 import {useRouter} from 'next/router';
 import axios from 'axios';
 
-const Home: React.FC = () => {
+interface LogoutProps {
+    onLogout: () => void;
+}
+
+
+const Home: React.FC<LogoutProps> = ({onLogout}) => {
     const [pendingEscrows, setPendingEscrows] = useState<EscrowAPI[]>([]);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
@@ -95,6 +100,8 @@ const Home: React.FC = () => {
     return (
         <div>
             <h1>Pending Escrows</h1>
+            <button onClick={onLogout}>Logout</button>
+
             {error && <p>{error}</p>}
 
             <ul>

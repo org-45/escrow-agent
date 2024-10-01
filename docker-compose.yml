@@ -91,6 +91,18 @@ services:
     networks:
       - escrow-network
 
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    container_name: swagger-ui
+    ports:
+      - "8081:8080"
+    environment:
+      - SWAGGER_JSON=/swagger/swagger.yml
+    volumes:
+      - ./swagger:/swagger 
+    networks:
+      - escrow-network
+
 volumes:
   postgres_data:
   minio_data:

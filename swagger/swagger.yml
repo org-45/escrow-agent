@@ -1,0 +1,275 @@
+openapi: 3.0.0
+info:
+  title: Escrow Agent API
+  description: API for managing escrow transactions.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+paths:
+  /login:
+    post:
+      summary: Logs in a user
+      description: Authenticates a user and returns a JWT token.
+      tags:
+        - auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Invalid username or password
+
+  /signup:
+    post:
+      summary: Signs up a new user
+      description: Registers a new user and returns success status.
+      tags:
+        - auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+      responses:
+        '201':
+          description: Successful signup
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignupResponse'
+        '400':
+          description: Invalid signup data
+
+  /api/escrow:
+    post:
+      summary: Creates a new escrow
+      description: Creates an escrow transaction between a buyer and seller.
+      tags:
+        - escrow
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEscrowRequest'
+      responses:
+        '201':
+          description: Escrow created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateEscrowResponse'
+        '400':
+          description: Invalid escrow data
+
+  /api/escrow/{id}/release:
+    post:
+      summary: Releases escrow funds
+      description: Releases funds from escrow to the seller.
+      tags:
+        - escrow
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Escrow ID
+      responses:
+        '200':
+          description: Funds released successfully
+        '400':
+          description: Invalid escrow ID
+
+  /api/escrow/{id}/dispute:
+    post:
+      summary: Disputes an escrow transaction
+      description: Files a dispute for an escrow transaction.
+      tags:
+        - escrow
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Escrow ID
+      responses:
+        '200':
+          description: Dispute filed successfully
+        '400':
+          description: Invalid escrow ID
+
+  /api/escrow/pending:
+    get:
+      summary: Gets all pending escrows
+      description: Returns a list of all pending escrow transactions.
+      tags:
+        - escrow
+      responses:
+        '200':
+          description: List of pending escrows
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PendingEscrowResponse'
+
+  /api/escrow/disputed:
+    get:
+      summary: Gets all disputed escrows
+      description: Returns a list of all disputed escrow transactions.
+      tags:
+        - escrow
+      responses:
+        '200':
+          description: List of disputed escrows
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DisputedEscrowResponse'
+
+  /api/upload:
+    post:
+      summary: Uploads a file
+      description: Uploads a file for escrow documents.
+      tags:
+        - fileupload
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UploadRequest'
+      responses:
+        '200':
+          description: File uploaded successfully
+
+  /api/customer:
+    post:
+      summary: Creates a new customer
+      description: Adds a new customer to the escrow system.
+      tags:
+        - customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCustomerRequest'
+      responses:
+        '201':
+          description: Customer created successfully
+        '400':
+          description: Invalid customer data
+
+components:
+  schemas:
+    LoginRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+      required:
+        - username
+        - password
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+
+    SignupRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        email:
+          type: string
+      required:
+        - username
+        - password
+        - email
+
+    SignupResponse:
+      type: object
+      properties:
+        id:
+          type: string
+
+    CreateEscrowRequest:
+      type: object
+      properties:
+        buyer_id:
+          type: string
+        seller_id:
+          type: string
+        amount:
+          type: number
+      required:
+        - buyer_id
+        - seller_id
+        - amount
+
+    CreateEscrowResponse:
+      type: object
+      properties:
+        escrow_id:
+          type: string
+        status:
+          type: string
+
+    PendingEscrowResponse:
+      type: object
+      properties:
+        escrow_id:
+          type: string
+        status:
+          type: string
+
+    DisputedEscrowResponse:
+      type: object
+      properties:
+        escrow_id:
+          type: string
+        status:
+          type: string
+
+    UploadRequest:
+      type: object
+      properties:
+        file:
+          type: string
+          format: binary
+
+    CreateCustomerRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+      required:
+        - name
+        - email
+        - phone

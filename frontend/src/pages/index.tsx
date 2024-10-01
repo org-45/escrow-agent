@@ -24,11 +24,20 @@ const Main: React.FC = () => {
         setCurrentPage('login');
     };
 
-    const handleLoginSuccess = (token: string) => {
-        localStorage.setItem('jwt', token);
-        setJwt(token);
-        setCurrentPage('home');
-        router.push('/');
+    // const onLoginSuccess = (token: string) => {
+    //     localStorage.setItem('jwt', token);
+    //     setJwt(token);
+    //     setCurrentPage('home');
+    //     router.push('/');
+    // };
+
+
+    const onLogout = () => {
+        // Clear JWT from local storage
+        localStorage.removeItem('jwt');
+        setJwt(null);
+        setCurrentPage('login');
+        router.push('/login');
     };
 
     if (currentPage === 'signup') {
@@ -36,11 +45,11 @@ const Main: React.FC = () => {
     }
 
     if (currentPage === 'login') {
-        return <Login onLoginSuccess={handleLoginSuccess} />;
+        return <Login/>;
     }
 
     if (currentPage === 'home') {
-        return <Home />;
+        return <Home onLogout={onLogout}/>;
     }
 
     return null;
