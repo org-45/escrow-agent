@@ -1,81 +1,82 @@
 package fileupload
 
 import (
-	"context"
-	"encoding/json"
-	"fmt"
-	"log"
-	"mime/multipart"
-	"net/http"
-	"os"
-	"path/filepath"
+    "context"
+    "fmt"
+    "log"
+    "net/http"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/credentials"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
+    "github.com/minio/minio-go/v7"
+    "github.com/minio/minio-go/v7/pkg/credentials"
 )
 
-var (
-	bucketName = os.Getenv("MINIO_BUCKET_NAME")
-	endpoint   = os.Getenv("MINIO_ENDPOINT")
-	accessKey  = os.Getenv("MINIO_ACCESS_KEY")
-	secretKey  = os.Getenv("MINIO_SECRET_KEY")
-	region     = os.Getenv("MINIO_REGION")
-)
+// MinIO client setup
+var minioClient *minio.Client
 
-func UploadFileToMinIO(file multipart.File, fileHeader *multipart.FileHeader) (string, error) {
-	cfg, err := config.LoadDefaultConfig(context.TODO(),
-		config.WithRegion(region),
-		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(accessKey, secretKey, "")),
-	)
-	if err != nil {
-		return "", fmt.Errorf("failed to load AWS config: %v", err)
-	}
+func init() {
+    endpoint := "localhost:9000"
+    accessKeyID := "minioadmin"
+    secretAccessKey := "minioadmin"
+    useSSL := false
 
-	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
-		o.BaseEndpoint = aws.String(endpoint)
-	})
-
-	fileKey := filepath.Base(fileHeader.Filename)
-
-	_, err = client.PutObject(context.TODO(), &s3.PutObjectInput{
-		Bucket:      aws.String(bucketName),
-		Key:         aws.String(fileKey),
-		Body:        file,
-		ContentType: aws.String("application/pdf"),
-	})
-	if err != nil {
-		return "", fmt.Errorf("failed to upload file to MinIO: %v", err)
-	}
-
-	fileUrl := fmt.Sprintf("%s/%s/%s", endpoint, bucketName, fileKey)
-	return fileUrl, nil
+    var err error
+    minioClient, err = minio.New(endpoint, &minio.Options{
+        Creds:  credentials.NewStaticV4(accessKeyID, secretAccessKey, ""),
+        Secure: useSSL,
+    })
+    if err != nil {
+        log.Fatalln(err)
+    }
 }
 
+// UploadHandler handles file uploads
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
-		return
-	}
+    // Only accept POST method
+    if r.Method != http.MethodPost {
+        http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+        return
+    }
 
-	file, fileHeader, err := r.FormFile("file")
-	if err != nil {
-		http.Error(w, "Could not get uploaded file", http.StatusBadRequest)
-		return
-	}
-	defer file.Close()
+    // Parse multipart form (10 MB max file size)
+    err := r.ParseMultipartForm(10 << 20)
+    if err != nil {
+        http.Error(w, "Error parsing form", http.StatusBadRequest)
+        return
+    }
 
-	fileUrl, err := UploadFileToMinIO(file, fileHeader)
-	if err != nil {
-		log.Printf("Error uploading file to MinIO: %v\n", err)
-		http.Error(w, "Failed to upload file", http.StatusInternalServerError)
-		return
-	}
+    // Retrieve file from request
+    file, header, err := r.FormFile("file")
+    if err != nil {
+        http.Error(w, "Error retrieving file", http.StatusBadRequest)
+        return
+    }
+    defer file.Close()
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{
-		"message":  "File uploaded successfully",
-		"file_url": fileUrl,
-	})
+    // Upload file to MinIO
+    bucketName := "escrow-documents"
+    objectName := header.Filename
+    contentType := header.Header.Get("Content-Type")
+
+    ctx := context.Background()
+    err = minioClient.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{Region: "us-east-1"})
+    if err != nil {
+        exists, errBucketExists := minioClient.BucketExists(ctx, bucketName)
+        if errBucketExists == nil && exists {
+            log.Printf("Bucket %s already exists\n", bucketName)
+        } else {
+            http.Error(w, "Error with MinIO bucket", http.StatusInternalServerError)
+            return
+        }
+    }
+
+    // Upload file to the bucket
+    info, err := minioClient.PutObject(ctx, bucketName, objectName, file, header.Size, minio.PutObjectOptions{ContentType: contentType})
+    if err != nil {
+        http.Error(w, "Error uploading file to MinIO", http.StatusInternalServerError)
+        return
+    }
+
+    // Success response
+    w.WriteHeader(http.StatusOK)
+    fmt.Fprintf(w, "File uploaded successfully: %s (%d bytes)\n", objectName, info.Size)
 }
