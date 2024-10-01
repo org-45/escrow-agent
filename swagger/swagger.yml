@@ -71,25 +71,37 @@ paths:
                 $ref: '#/components/schemas/CreateEscrowResponse'
         '400':
           description: Invalid escrow data
+      security:
+        - BearerAuth: []  
 
   /api/escrow/{id}/release:
-    post:
-      summary: Releases escrow funds
-      description: Releases funds from escrow to the seller.
-      tags:
-        - escrow
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Escrow ID
-      responses:
-        '200':
-          description: Funds released successfully
-        '400':
-          description: Invalid escrow ID
+      post:
+        summary: Releases escrow funds
+        description: Releases funds from escrow to the seller.
+        tags:
+          - escrow
+        parameters:
+          - name: id
+            in: path
+            required: true
+            schema:
+              type: string
+            description: "Escrow ID of the transaction"
+        responses:
+          '200':
+            description: Funds released successfully
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ReleaseFundsResponse'
+          '400':
+            description: Invalid escrow ID or escrow not in pending state
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResponse'
+        security:
+          - BearerAuth: [] 
 
   /api/escrow/{id}/dispute:
     post:
@@ -103,12 +115,22 @@ paths:
           required: true
           schema:
             type: string
-          description: Escrow ID
+          description: "Escrow ID of the transaction"
       responses:
         '200':
           description: Dispute filed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisputeEscrowResponse'
         '400':
-          description: Invalid escrow ID
+          description: Invalid escrow ID or escrow not in pending state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'   
+      security:
+        - BearerAuth: []
 
   /api/escrow/pending:
     get:
@@ -125,6 +147,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/PendingEscrowResponse'
+        '500':
+          description: Internal server error
+      security:
+        - BearerAuth: []
 
   /api/escrow/disputed:
     get:
@@ -141,6 +167,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/DisputedEscrowResponse'
+        '500':
+          description: Internal server error
+      security:
+        - BearerAuth: []
 
   /api/upload:
     post:
@@ -157,6 +187,8 @@ paths:
       responses:
         '200':
           description: File uploaded successfully
+      security:
+        - BearerAuth: []
 
   /api/customer:
     post:
@@ -175,8 +207,17 @@ paths:
           description: Customer created successfully
         '400':
           description: Invalid customer data
+      security:
+        - BearerAuth: []
 
 components:
+
+  securitySchemes:
+    BearerAuth:  
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      
   schemas:
     LoginRequest:
       type: object
@@ -202,56 +243,147 @@ components:
           type: string
         password:
           type: string
-        email:
-          type: string
+
       required:
         - username
         - password
-        - email
-
     SignupResponse:
       type: object
       properties:
-        id:
+        message:
           type: string
+          example: "User created successfully"
 
     CreateEscrowRequest:
       type: object
       properties:
         buyer_id:
           type: string
+          description: "ID of the buyer"
         seller_id:
           type: string
+          description: "ID of the seller"
         amount:
           type: number
+          format: float
+          description: "Amount for the escrow"
+        description:
+          type: string
+          description: "Description of the escrow transaction"
       required:
         - buyer_id
         - seller_id
         - amount
+        - description
 
     CreateEscrowResponse:
       type: object
       properties:
         escrow_id:
           type: string
+          description: "The ID of the newly created escrow transaction"
         status:
           type: string
+          description: "The current status of the escrow"
+        created_at:
+          type: string
+          format: date-time
+          description: "The creation time of the escrow"
 
     PendingEscrowResponse:
       type: object
       properties:
         escrow_id:
           type: string
+          description: "The ID of the escrow transaction"
+        buyer_id:
+          type: string
+          description: "The ID of the buyer"
+        seller_id:
+          type: string
+          description: "The ID of the seller"
+        amount:
+          type: number
+          description: "The amount of the escrow transaction"
         status:
           type: string
+          description: "The current status of the escrow"
+        created_at:
+          type: string
+          format: date-time
+          description: "The creation time of the escrow"
+        description:
+          type: string
+          description: "Description of the escrow transaction"
 
     DisputedEscrowResponse:
       type: object
       properties:
         escrow_id:
           type: string
+          description: "The ID of the disputed escrow transaction"
+        buyer_id:
+          type: string
+          description: "The ID of the buyer"
+        seller_id:
+          type: string
+          description: "The ID of the seller"
+        amount:
+          type: number
+          description: "The amount of the escrow transaction"
         status:
           type: string
+          description: "The current status of the escrow, which is 'disputed'"
+        created_at:
+          type: string
+          format: date-time
+          description: "The creation time of the escrow"
+        description:
+          type: string
+          description: "Description of the escrow transaction"
+
+    ReleaseFundsResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Funds released successfully"
+        escrow_id:
+          type: string
+          description: "The ID of the escrow that was released"
+        status:
+          type: string
+          example: "released"
+          description: "The new status of the escrow after releasing the funds"
+        released_at:
+          type: string
+          format: date-time
+          description: "The timestamp of when the funds were released"
+
+    DisputeEscrowResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Dispute filed successfully"
+        escrow_id:
+          type: string
+          description: "The ID of the escrow that was disputed"
+        status:
+          type: string
+          example: "disputed"
+          description: "The new status of the escrow after the dispute"
+        disputed_at:
+          type: string
+          format: date-time
+          description: "The timestamp of when the dispute was filed"
+          
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Invalid escrow ID or escrow not in pending state"
 
     UploadRequest:
       type: object
