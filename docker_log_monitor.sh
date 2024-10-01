@@ -1,17 +1,15 @@
 #!/bin/bash
 
-sudo docker-compose up -d
+if [ -z "$1" ]; then
+  echo "Usage: $0 <password>"
+  exit 1
+fi
+
+PASSWORD=$1
 
 sleep 5
 
-
-gnome-terminal -- bash -c "sudo docker logs -f escrow-agent-app; exec bash"
-
-gnome-terminal -- bash -c "sudo docker logs -f escrow-agent-db; exec bash"
-
-gnome-terminal -- bash -c "sudo docker logs -f escrow-agent-frontend; exec bash"
-
-gnome-terminal -- bash -c "sudo docker logs -f minio; exec bash"
-
-gnome-terminal -- bash -c "sudo docker logs -f mc; exec bash"
-
+gnome-terminal -- bash -c "echo $PASSWORD | sudo -S docker logs -f escrow-agent-app; exec bash"
+gnome-terminal -- bash -c "echo $PASSWORD | sudo -S docker logs -f escrow-agent-db; exec bash"
+gnome-terminal -- bash -c "echo $PASSWORD | sudo -S docker logs -f escrow-agent-frontend; exec bash"
+gnome-terminal -- bash -c "echo $PASSWORD | sudo -S docker logs -f minio; exec bash"
