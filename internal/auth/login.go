@@ -28,7 +28,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var user User
-	err := db.DB.QueryRow("SELECT id, username, password_hash FROM users WHERE username = $1", creds.Username).Scan(&user.ID, &user.Username, &user.PasswordHash)
+	err := db.DB.QueryRow("SELECT user_id, username, password_hash FROM users WHERE username = $1", creds.Username).Scan(&user.ID, &user.Username, &user.PasswordHash)
 	if err != nil {
 		http.Error(w, "Invalid username or password", http.StatusUnauthorized)
 		return
