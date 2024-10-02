@@ -2,10 +2,10 @@ package auth
 
 import (
 	"encoding/json"
+	"escrow-agent/internal/db"
 	"log"
 	"net/http"
-
-	"escrow-agent/internal/db"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -14,6 +14,8 @@ type User struct {
 	ID           int
 	Username     string
 	PasswordHash string
+	Role         string
+	CreatedAt    time.Time
 }
 
 type UserCredentials struct {
@@ -29,7 +31,9 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var user User
-	err := db.DB.QueryRow("SELECT user_id, username, password_hash FROM users WHERE username = $1", creds.Username).Scan(&user.ID, &user.Username, &user.PasswordHash)
+	err := db.DB.QueryRow(
+		"SELECT user_id, username, password_hash, role, created_at FROM users WHERE username = $1",
+		creds.Username).Scan(&user.ID, &user.Username, &user.PasswordHash, &user.Role, &user.CreatedAt)
 	if err != nil {
 		http.Error(w, "Invalid username or password", http.StatusUnauthorized)
 		return
