@@ -1,0 +1,71 @@
+package auth
+
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+
+	"escrow-agent/internal/db"
+
+	"golang.org/x/crypto/bcrypt"
+
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgerrcode"
+)
+
+type RegisterRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Role     string `json:"role"`
+}
+
+func validateInput(req RegisterRequest) error {
+
+	if req.Username == "" || req.Password == "" || req.Role == "" {
+		return fmt.Errorf("all required parameters not passed")
+	}
+
+	if len(req.Password) < 8 {
+		return fmt.Errorf("password must be at least 8 characters")
+	}
+
+	if req.Role != "buyer" && req.Role != "seller" && req.Role != "admin" {
+		return fmt.Errorf("invalid role")
+	}
+
+	return nil
+}
+
+func RegisterHandler(w http.ResponseWriter, r *http.Request) {
+	var req RegisterRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+
+	if err := validateInput(req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		http.Error(w, "Failed to hash password", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = db.DB.Exec("INSERT INTO users (username, password_hash, role) VALUES ($1, $2, $3)", req.Username, hashedPassword, req.Role)
+	if err != nil {
+
+		if pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == pgerrcode.UniqueViolation {
+			http.Error(w, "Username already exists", http.StatusConflict)
+			return
+		}
+
+		http.Error(w, "Failed to create user", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]string{"message": "User registered successfully"})
+}

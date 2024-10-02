@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/org-45/escrow-agent/internal/auth"
+	"escrow-agent/internal/auth"
 )
 
 func JWTAuthMiddleware(next http.Handler) http.Handler {

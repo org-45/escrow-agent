@@ -4,12 +4,13 @@ import (
 	"log"
 	"net/http"
 
+	"escrow-agent/internal/auth"
+	"escrow-agent/internal/db"
+	"escrow-agent/internal/escrow"
+	"escrow-agent/internal/fileupload"
+	"escrow-agent/internal/middleware"
+
 	"github.com/gorilla/mux"
-	"github.com/org-45/escrow-agent/internal/auth"
-	"github.com/org-45/escrow-agent/internal/db"
-	"github.com/org-45/escrow-agent/internal/escrow"
-	"github.com/org-45/escrow-agent/internal/fileupload"
-	"github.com/org-45/escrow-agent/internal/middleware"
 	"github.com/rs/cors"
 )
 
@@ -20,7 +21,7 @@ func main() {
 
 	//public routes
 	r.HandleFunc("/login", auth.LoginHandler).Methods("POST")
-	r.HandleFunc("/signup", auth.SignupHandler).Methods("POST")
+	r.HandleFunc("/register", auth.RegisterHandler).Methods("POST")
 
 	//protected routes
 	api := r.PathPrefix("/api").Subrouter()

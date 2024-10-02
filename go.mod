@@ -1,4 +1,4 @@
-module github.com/org-45/escrow-agent
+module escrow-agent
 
 go 1.22.0
 

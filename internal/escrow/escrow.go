@@ -8,9 +8,10 @@ import (
 	"net/http"
 	"time"
 
+	"escrow-agent/internal/db"
+	"escrow-agent/pkg/models"
+
 	"github.com/google/uuid"
-	"github.com/org-45/escrow-agent/internal/db"
-	"github.com/org-45/escrow-agent/pkg/models"
 )
 
 type Customer struct {

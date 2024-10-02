@@ -28,9 +28,9 @@ paths:
         '401':
           description: Invalid username or password
 
-  /signup:
+  /register:
     post:
-      summary: Signs up a new user
+      summary: Registers a new user
       description: Registers a new user and returns success status.
       tags:
         - auth
@@ -39,14 +39,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SignupRequest'
+              $ref: '#/components/schemas/RegisterRequest'
       responses:
         '201':
           description: Successful signup
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SignupResponse'
+                $ref: '#/components/schemas/RegisterResponse'
         '400':
           description: Invalid signup data
 
@@ -236,23 +236,26 @@ components:
         token:
           type: string
 
-    SignupRequest:
+    RegisterRequest:
       type: object
       properties:
         username:
           type: string
         password:
           type: string
-
+        role:
+          type: string
       required:
         - username
         - password
-    SignupResponse:
+        - role
+
+    RegisterResponse:
       type: object
       properties:
         message:
           type: string
-          example: "User created successfully"
+          example: "User registered successfully"
 
     CreateEscrowRequest:
       type: object

@@ -5,7 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/org-45/escrow-agent/internal/db"
+	"escrow-agent/internal/db"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
