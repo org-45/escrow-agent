@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"escrow-agent/internal/db"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -17,6 +18,11 @@ type RegisterRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 	Role     string `json:"role"`
+}
+
+type RegisterResponse struct {
+	Message   string    `json:"message"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 func validateInput(req RegisterRequest) error {
@@ -54,18 +60,24 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = db.DB.Exec("INSERT INTO users (username, password_hash, role) VALUES ($1, $2, $3)", req.Username, hashedPassword, req.Role)
-	if err != nil {
+	var createdAt time.Time
+	err = db.DB.QueryRow(
+		"INSERT INTO users (username, password_hash, role, created_at) VALUES ($1, $2, $3, CURRENT_TIMESTAMP) RETURNING created_at",
+		req.Username, hashedPassword, req.Role,
+	).Scan(&createdAt)
 
+	if err != nil {
 		if pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == pgerrcode.UniqueViolation {
 			http.Error(w, "Username already exists", http.StatusConflict)
 			return
 		}
-
 		http.Error(w, "Failed to create user", http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]string{"message": "User registered successfully"})
+	json.NewEncoder(w).Encode(RegisterResponse{
+		Message:   "User registered successfully",
+		CreatedAt: createdAt,
+	})
 }

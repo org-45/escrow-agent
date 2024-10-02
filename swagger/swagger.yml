@@ -50,6 +50,28 @@ paths:
         '400':
           description: Invalid signup data
 
+  /api/profile:
+    get:
+      summary: Get the logged-in user's profile
+      description: Returns the profile information of the authenticated user.
+      tags:
+        - profile
+      responses:
+        '200':
+          description: Profile information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '401':
+          description: Unauthorized - Invalid or missing JWT token
+        '404':
+          description: User not found
+        '500':
+          description: Server error
+      security:
+        - BearerAuth: []
+
   /api/escrow:
     post:
       summary: Creates a new escrow
@@ -256,6 +278,23 @@ components:
         message:
           type: string
           example: "User registered successfully"
+
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: "chauchausoup"
+        role:
+          type: string
+          example: "buyer, seller, admin"
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-10-01T15:23:45Z"
 
     CreateEscrowRequest:
       type: object
