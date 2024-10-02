@@ -1,0 +1,42 @@
+        +------------------------+
+        |        Buyer            |
+        +------------------------+
+        | - Register/Login        |
+        | - Create Transaction    |
+        | - Deposit Funds         |
+        | - Confirm Delivery      |
+        | - Raise Dispute         |
+        +------------------------+
+                    |
+                    |
+                    |
+                    V
+        +------------------------+
+        |     System (Escrow)     |
+        +------------------------+
+        | - Hold Funds in Escrow  |
+        | - Release Funds to      |
+        |   Seller                |
+        +------------------------+
+                    ^
+                    |
+                    |
+        +------------------------+
+        |        Seller           |
+        +------------------------+
+        | - Register/Login        |
+        | - Fulfill Transaction   |
+        | - Raise Dispute         |
+        +------------------------+
+                    |
+                    |
+                    |
+                    V
+        +------------------------+
+        |        Admin            |
+        +------------------------+
+        | - Manage Users          |
+        | - View Transactions     |
+        | - Resolve Disputes      |
+        | - Release Funds         |
+        +------------------------+

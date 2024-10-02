@@ -1,0 +1,93 @@
++----------------------------+
+|           User              |
++----------------------------+
+| - userID: int               |
+| - email: string             |
+| - passwordHash: string      |
+| - role: string              |
+| - createdAt: time.Time      |
++----------------------------+
+| + Register(): error         |
+| + Login(): string (JWT)     |
+| + UpdateProfile(): error    |
++----------------------------+
+
+                   ^
+                   |
+                   |
++----------------------------+      +-----------------------------+
+|        Buyer                |      |           Seller            |
++----------------------------+      +-----------------------------+
+| Inherits from User          |      | Inherits from User          |
+|                            |      |                             |
++----------------------------+      +-----------------------------+
+| + CreateTransaction(): error|      | + FulfillTransaction(): error|
+| + ConfirmDelivery(): error  |      |                             |
+| + RaiseDispute(): error     |      | + RaiseDispute(): error      |
++----------------------------+      +-----------------------------+
+ 
+                    ^                         ^
+                    |                         |
+                    +------------+------------+
+                                 |
++---------------------------------------------------+
+|               Transaction                        |
++---------------------------------------------------+
+| - transactionID: int                             |
+| - buyerID: int                                   |
+| - sellerID: int                                  |
+| - amount: float64                                |
+| - status: string                                 |
+| - createdAt: time.Time                           |
++---------------------------------------------------+
+| + CreateTransaction(buyerID, sellerID, amount): error |
+| + UpdateStatus(status): error                        |
+| + LogTransactionEvent(eventType, details): error     |
++---------------------------------------------------+
+
+                                  ^
+                                  |
+                                  |
++--------------------------------------------------+
+|                 EscrowAccount                    |
++--------------------------------------------------+
+| - escrowID: int                                  |
+| - transactionID: int                             |
+| - escrowedAmount: float64                        |
+| - status: string                                 |
+| - createdAt: time.Time                           |
++--------------------------------------------------+
+| + HoldFunds(): error                             |
+| + ReleaseFunds(): error                          |
+| + RefundFunds(): error                           |
++--------------------------------------------------+
+
+                                  ^
+                                  |
+                                  |
++--------------------------------------------------+
+|                 TransactionLog                   |
++--------------------------------------------------+
+| - logID: int                                     |
+| - transactionID: int                             |
+| - eventType: string                              |
+| - eventDetails: string                           |
+| - createdAt: time.Time                           |
++--------------------------------------------------+
+| + LogEvent(transactionID, eventType, details): error |
++--------------------------------------------------+
+
+                                  ^
+                                  |
+                                  |
++--------------------------------------------------+
+|                 Admin                            |
++--------------------------------------------------+
+| Inherits from User                               |
+|                                                  |
++--------------------------------------------------+
+| + ManageUsers(): error                           |
+| + ViewTransactions(): []Transaction              |
+| + ResolveDisputes(): error                       |
+| + ReleaseFunds(): error                          |
++--------------------------------------------------+

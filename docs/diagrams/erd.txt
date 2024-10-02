@@ -1,0 +1,23 @@
++------------------------+           +------------------------+           +------------------------+
+|        Users            |          |      Transactions      |           |     Escrow Accounts    |
++------------------------+           +------------------------+           +------------------------+
+| PK | user_id            |<---+   +--| PK | transaction_id    |<--+    +--| PK | escrow_id         |
+|    | email              |    |   |  | FK | buyer_id          |   |    |  | FK | transaction_id    |
+|    | password_hash      |    +---+  | FK | seller_id         |   +----+  |    | escrowed_amount   |
+|    | role               |           |    | amount            |           |    | status            |
+|    | created_at         |           |    | status            |           |    | created_at        |
++------------------------+            |   | created_at         |           +------------------------+
+                                      +------------------------+
+                                                ^
+                                                |
+                                                |
+                                                |
+                                      +------------------------+
+                                      |    Transaction Logs     |
+                                      +------------------------+
+                                      | PK | log_id             |
+                                      | FK | transaction_id     |
+                                      |    | event_type         |
+                                      |    | event_details      |
+                                      |    | created_at         |
+                                      +------------------------+

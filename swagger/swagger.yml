@@ -177,7 +177,7 @@ paths:
       summary: Uploads a file
       description: Uploads a file for escrow documents.
       tags:
-        - fileupload
+        - fileupload (TODO feature)
       requestBody:
         required: true
         content:
