@@ -5,7 +5,7 @@
 | POST   | `/register`      | Register a new user (buyer, seller, or admin)    |
 | POST   | `/login`         | Log in a user and return a JWT token             |
 | GET    | `/profile`       | Get the logged-in user's profile                 |
-| PUT    | `/profile`       | Update the logged-in user's profile (email, etc.)|
+| PUT    | `/profile`       | Update the logged-in user's profile (username, etc.)|
 
 
 

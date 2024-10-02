@@ -72,6 +72,52 @@ paths:
       security:
         - BearerAuth: []
 
+    put:
+      summary: Update the logged-in user's profile
+      description: Allows the authenticated user to update their profile information (username, password, and role).
+      tags:
+        - profile
+      requestBody:
+        description: Fields to update in the user's profile (only the fields that need updating should be included)
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: New username
+                  example: new_username
+                password:
+                  type: string
+                  description: New password (will be securely hashed before storing)
+                  example: new_password
+                role:
+                  type: string
+                  description: The user's new role (admin, buyer, or seller)
+                  example: admin
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Profile updated successfully
+        '400':
+          description: Bad request - Invalid input data
+        '401':
+          description: Unauthorized - Invalid or missing JWT token
+        '500':
+          description: Internal server error
+      security:
+        - BearerAuth: []
+
+
   /api/escrow:
     post:
       summary: Creates a new escrow

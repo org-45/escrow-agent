@@ -29,7 +29,9 @@ func main() {
 
 	api := r.PathPrefix("/api").Subrouter()
 	api.Use(middleware.JWTAuthMiddleware)
+
 	api.HandleFunc("/profile", profile.ProfileHandler).Methods("GET")
+	api.HandleFunc("/profile", profile.ProfileUpdateHandler).Methods("PUT")
 
 	// Setup CORS
 	c := cors.New(cors.Options{
