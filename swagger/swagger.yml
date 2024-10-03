@@ -160,6 +160,27 @@ paths:
       security:
         - BearerAuth: []
 
+    get:
+      summary: Get a list of all transactions for the logged-in user (buyer/seller)
+      description: Returns a list of transactions where the logged-in user is either the buyer or the seller.
+      tags:
+        - transactions
+      responses:
+        '200':
+          description: Transactions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transaction'
+        '401':
+          description: Unauthorized - Invalid or missing JWT token
+        '500':
+          description: Internal server error
+      security:
+        - BearerAuth: []
+
   /api/escrow:
     post:
       summary: Creates a new escrow

@@ -55,3 +55,33 @@ func CreateTransactionHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(transaction)
 }
+
+func GetTransactionsHandler(w http.ResponseWriter, r *http.Request) {
+	claims, ok := r.Context().Value("user").(*middleware.Claims)
+	if !ok {
+		log.Printf("[ERROR] Unauthorized access attempt - missing or invalid claims")
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var transactions []models.Transaction
+	query := `
+		SELECT transaction_id, buyer_id, seller_id, amount, status, created_at, updated_at
+		FROM transactions
+		WHERE buyer_id = $1 OR seller_id = $1
+		ORDER BY created_at DESC
+	`
+	err := db.DB.Select(&transactions, query, claims.UserID)
+	if err != nil {
+		log.Printf("[ERROR] Failed to fetch transactions for userID %d: %v", claims.UserID, err)
+		http.Error(w, "Failed to fetch transactions", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(transactions); err != nil {
+		log.Printf("[ERROR] Error encoding transactions response: %v", err)
+		http.Error(w, "Server error", http.StatusInternalServerError)
+		return
+	}
+}
