@@ -7,6 +7,9 @@ import (
 	"escrow-agent/pkg/models"
 	"log"
 	"net/http"
+	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
 type CreateTransactionRequest struct {
@@ -29,7 +32,7 @@ func CreateTransactionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate required fields
+	//validation
 	if req.SellerID == 0 || req.Amount <= 0 {
 		http.Error(w, "Seller ID and valid amount are required", http.StatusBadRequest)
 		return
@@ -81,6 +84,48 @@ func GetTransactionsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(transactions); err != nil {
 		log.Printf("[ERROR] Error encoding transactions response: %v", err)
+		http.Error(w, "Server error", http.StatusInternalServerError)
+		return
+	}
+}
+
+func GetTransactionHandler(w http.ResponseWriter, r *http.Request) {
+	claims, ok := r.Context().Value("user").(*middleware.Claims)
+	if !ok {
+		log.Printf("[ERROR] Unauthorized access attempt - missing or invalid claims")
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	vars := mux.Vars(r)
+	transactionID, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		http.Error(w, "Invalid transaction ID", http.StatusBadRequest)
+		return
+	}
+
+	var transaction models.Transaction
+	query := `
+		SELECT transaction_id, buyer_id, seller_id, amount, status, created_at, updated_at
+		FROM transactions
+		WHERE transaction_id = $1
+	`
+	err = db.DB.Get(&transaction, query, transactionID)
+	if err != nil {
+		log.Printf("[ERROR] Transaction not found with ID %d: %v", transactionID, err)
+		http.Error(w, "Transaction not found", http.StatusNotFound)
+		return
+	}
+
+	if transaction.BuyerID != claims.UserID && transaction.SellerID != claims.UserID {
+		log.Printf("[ERROR] Unauthorized access to transaction by userID %d", claims.UserID)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(transaction); err != nil {
+		log.Printf("[ERROR] Error encoding transaction response: %v", err)
 		http.Error(w, "Server error", http.StatusInternalServerError)
 		return
 	}

@@ -181,6 +181,37 @@ paths:
       security:
         - BearerAuth: []
 
+  /api/transactions/{id}:
+      get:
+        summary: Get details of a specific transaction
+        description: Returns the details of a specific transaction by its ID.
+        tags:
+          - transactions
+        parameters:
+          - name: id
+            in: path
+            required: true
+            schema:
+              type: integer
+            description: The ID of the transaction
+        responses:
+          '200':
+            description: Transaction retrieved successfully
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Transaction'
+          '400':
+            description: Invalid transaction ID
+          '401':
+            description: Unauthorized - Invalid or missing JWT token
+          '404':
+            description: Transaction not found
+          '500':
+            description: Internal server error
+        security:
+          - BearerAuth: []
+
   /api/escrow:
     post:
       summary: Creates a new escrow

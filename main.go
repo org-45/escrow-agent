@@ -36,6 +36,7 @@ func main() {
 
 	api.HandleFunc("/transactions", transactions.CreateTransactionHandler).Methods("POST")
 	api.HandleFunc("/transactions", transactions.GetTransactionsHandler).Methods("GET")
+	api.HandleFunc("/transactions/{id}", transactions.GetTransactionHandler).Methods("GET")
 
 	// Setup CORS
 	c := cors.New(cors.Options{
