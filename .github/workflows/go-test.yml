@@ -34,17 +34,27 @@ jobs:
     - name: Install dependencies
       run: go mod download
 
+    # Run tests with coverage and generate the coverage.out
     - name: Run tests with coverage
       run: go test ./... -coverprofile=coverage.out
 
-    # Output the coverage percentage in the GitHub Actions summary
-    - name: Display coverage percentage
+    # Calculate coverage percentage and store it in a JSON file
+    - name: Generate coverage badge
       run: |
-        go tool cover -func=coverage.out | grep total | awk '{print "Coverage: "$3}'
-    
-    # Upload the coverage report as an artifact (optional)
-    - name: Upload coverage report
-      uses: actions/upload-artifact@v3
-      with:
-        name: coverage-report
-        path: coverage.out
+        COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
+        cat <<EOF > badge.json
+        {
+          "schemaVersion": 1,
+          "label": "coverage",
+          "message": "$COVERAGE%",
+          "color": "brightgreen"
+        }
+        EOF
+
+    - name: Commit badge
+      run: |
+        git config --global user.name 'GitHub Action'
+        git config --global user.email 'action@github.com'
+        git add badge.json
+        git commit -m "Update coverage badge"
+        git push

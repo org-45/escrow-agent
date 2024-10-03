@@ -1,8 +1,11 @@
-### General Purpose Escrow Agent
+#### General purpose Escrow agent written in Go, PostgreSQL following OESD methodology.
 
-Definitly an over engineered backend app.
+Question: What's OESD ? \
+Answer: Over Engineered Software Development.
 
-![coverage](https://img.shields.io/badge/coverage-82.5%25-brightgreen)
+
+![coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/org-45/escrow-agent/main/badge.json)
+
 
 
 | Method | Endpoint        | Description                                      |
