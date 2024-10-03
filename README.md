@@ -1,5 +1,7 @@
 ### General Purpose Escrow Agent
 
+Definitly an over engineered backend app.
+
 | Method | Endpoint        | Description                                      |
 |--------|-----------------|--------------------------------------------------|
 | POST   | `/register`      | Register a new user (buyer, seller, or admin)    |
