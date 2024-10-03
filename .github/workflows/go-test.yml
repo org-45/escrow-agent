@@ -34,6 +34,17 @@ jobs:
     - name: Install dependencies
       run: go mod download
 
-    - name: Run tests
-      run: go test ./... -v
+    - name: Run tests with coverage
+      run: go test ./... -coverprofile=coverage.out
 
+    # Output the coverage percentage in the GitHub Actions summary
+    - name: Display coverage percentage
+      run: |
+        go tool cover -func=coverage.out | grep total | awk '{print "Coverage: "$3}'
+    
+    # Upload the coverage report as an artifact (optional)
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: coverage.out

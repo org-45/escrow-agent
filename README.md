@@ -2,6 +2,9 @@
 
 Definitly an over engineered backend app.
 
+![coverage](https://img.shields.io/badge/coverage-82.5%25-brightgreen)
+
+
 | Method | Endpoint        | Description                                      |
 |--------|-----------------|--------------------------------------------------|
 | POST   | `/register`      | Register a new user (buyer, seller, or admin)    |
