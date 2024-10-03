@@ -247,6 +247,41 @@ paths:
       security:
         - BearerAuth: []
 
+  /api/transactions/{id}/confirm:
+    put:
+      summary: Confirm the delivery of a product or service (by buyer)
+      description: Allows the buyer to confirm the delivery of a product or service.
+      tags:
+        - transactions
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the transaction
+      responses:
+        '200':
+          description: Transaction confirmed by buyer
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Transaction confirmed by buyer
+        '400':
+          description: Bad request (invalid transaction status)
+        '401':
+          description: Unauthorized - Invalid or missing JWT token
+        '404':
+          description: Transaction not found
+        '500':
+          description: Internal server error
+      security:
+        - BearerAuth: []
+
 
   /api/escrow:
     post:

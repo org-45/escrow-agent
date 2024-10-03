@@ -192,3 +192,58 @@ func FulfillTransactionHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Transaction marked as fulfilled"})
 }
+
+func ConfirmDeliveryHandler(w http.ResponseWriter, r *http.Request) {
+	claims, ok := r.Context().Value("user").(*middleware.Claims)
+	if !ok || claims.Role != "buyer" {
+		log.Printf("[ERROR] Unauthorized access attempt - missing claims or incorrect role")
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	vars := mux.Vars(r)
+	transactionID, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		http.Error(w, "Invalid transaction ID", http.StatusBadRequest)
+		return
+	}
+
+	var transaction models.Transaction
+	query := `
+		SELECT transaction_id, buyer_id, seller_id, status
+		FROM transactions
+		WHERE transaction_id = $1
+	`
+	err = db.DB.Get(&transaction, query, transactionID)
+	if err != nil {
+		log.Printf("[ERROR] Transaction not found with ID %d: %v", transactionID, err)
+		http.Error(w, "Transaction not found", http.StatusNotFound)
+		return
+	}
+
+	if transaction.BuyerID != claims.UserID {
+		log.Printf("[ERROR] Unauthorized access to transaction by userID %d", claims.UserID)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if transaction.Status != "deposited" {
+		http.Error(w, "Transaction cannot be confirmed in its current status", http.StatusBadRequest)
+		return
+	}
+
+	updateQuery := `
+		UPDATE transactions
+		SET status = 'completed', updated_at = NOW()
+		WHERE transaction_id = $1
+	`
+	_, err = db.DB.Exec(updateQuery, transactionID)
+	if err != nil {
+		log.Printf("[ERROR] Failed to update transaction status for ID %d: %v", transactionID, err)
+		http.Error(w, "Failed to update transaction", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Transaction confirmed by buyer"})
+}
