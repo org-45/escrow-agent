@@ -130,3 +130,65 @@ func GetTransactionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func FulfillTransactionHandler(w http.ResponseWriter, r *http.Request) {
+	// Extract claims from the request context (added by the middleware)
+	claims, ok := r.Context().Value("user").(*middleware.Claims)
+	if !ok || claims.Role != "seller" {
+		log.Printf("[ERROR] Unauthorized access attempt - invalid role or missing claims")
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Extract the transaction_id from the URL parameters
+	vars := mux.Vars(r)
+	transactionID, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		http.Error(w, "Invalid transaction ID", http.StatusBadRequest)
+		return
+	}
+
+	// Fetch the transaction details from the database
+	var transaction models.Transaction
+	query := `
+		SELECT transaction_id, buyer_id, seller_id, status
+		FROM transactions
+		WHERE transaction_id = $1
+	`
+	err = db.DB.Get(&transaction, query, transactionID)
+	if err != nil {
+		log.Printf("[ERROR] Transaction not found with ID %d: %v", transactionID, err)
+		http.Error(w, "Transaction not found", http.StatusNotFound)
+		return
+	}
+
+	// Ensure the logged-in user is the seller of this transaction
+	if transaction.SellerID != claims.UserID {
+		log.Printf("[ERROR] Unauthorized access to transaction by userID %d", claims.UserID)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Ensure the transaction is in the correct status to be fulfilled
+	if transaction.Status != "pending" {
+		http.Error(w, "Transaction cannot be fulfilled in its current status", http.StatusBadRequest)
+		return
+	}
+
+	// Update the transaction status to "fulfilled"
+	updateQuery := `
+		UPDATE transactions
+		SET status = 'deposited', updated_at = NOW()
+		WHERE transaction_id = $1
+	`
+	_, err = db.DB.Exec(updateQuery, transactionID)
+	if err != nil {
+		log.Printf("[ERROR] Failed to update transaction status for ID %d: %v", transactionID, err)
+		http.Error(w, "Failed to update transaction", http.StatusInternalServerError)
+		return
+	}
+
+	// Respond with success message
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Transaction marked as fulfilled"})
+}
