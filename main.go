@@ -12,6 +12,7 @@ import (
 	"escrow-agent/internal/db"
 	"escrow-agent/internal/middleware"
 	"escrow-agent/internal/profile"
+	"escrow-agent/internal/transactions"
 
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
@@ -32,6 +33,8 @@ func main() {
 
 	api.HandleFunc("/profile", profile.ProfileHandler).Methods("GET")
 	api.HandleFunc("/profile", profile.ProfileUpdateHandler).Methods("PUT")
+
+	api.HandleFunc("/transactions", transactions.CreateTransactionHandler).Methods("POST")
 
 	// Setup CORS
 	c := cors.New(cors.Options{

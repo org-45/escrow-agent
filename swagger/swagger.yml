@@ -117,6 +117,48 @@ paths:
       security:
         - BearerAuth: []
 
+  /api/transactions:
+    post:
+      summary: Create a new transaction (by buyer)
+      description: Allows a buyer to create a new transaction by specifying the seller, amount, and status.
+      tags:
+        - transactions
+      requestBody:
+        description: Information required to create a new transaction
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                seller_id:
+                  type: integer
+                  description: The ID of the seller
+                  example: 2
+                amount:
+                  type: number
+                  format: float
+                  description: The transaction amount
+                  example: 500.00
+                status:
+                  type: string
+                  description: The status of the transactio, defaults to pending
+                  example: pending
+      responses:
+        '201':
+          description: Transaction created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '400':
+          description: Bad request (missing or invalid input data)
+        '401':
+          description: Unauthorized - Invalid or missing JWT token
+        '500':
+          description: Internal server error
+      security:
+        - BearerAuth: []
 
   /api/escrow:
     post:
@@ -341,6 +383,27 @@ components:
           type: string
           format: date-time
           example: "2023-10-01T15:23:45Z"
+
+    Transaction:
+      type: object
+      properties:
+        transaction_id:
+          type: integer
+        buyer_id:
+          type: integer
+        seller_id:
+          type: integer
+        amount:
+          type: number
+          format: float
+        status:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
 
     CreateEscrowRequest:
       type: object

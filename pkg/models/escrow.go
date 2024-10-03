@@ -41,13 +41,15 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
+// Transaction represents a transaction between a buyer and a seller
 type Transaction struct {
-	ID        int       `db:"transaction_id" json:"id"`
-	BuyerID   int       `db:"buyer_id" json:"buyer_id"`
-	SellerID  int       `db:"seller_id" json:"seller_id"`
-	Amount    float64   `db:"amount" json:"amount"`
-	Status    string    `db:"status" json:"status"`
-	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	TransactionID int       `db:"transaction_id" json:"transaction_id"`
+	BuyerID       int       `db:"buyer_id" json:"buyer_id"`
+	SellerID      int       `db:"seller_id" json:"seller_id"`
+	Amount        float64   `db:"amount" json:"amount"`
+	Status        string    `db:"status" json:"status"`
+	CreatedAt     time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt     time.Time `db:"updated_at" json:"updated_at"`
 }
 
 type EscrowAccount struct {
