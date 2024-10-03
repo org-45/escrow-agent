@@ -10,6 +10,7 @@ import (
 
 	"escrow-agent/internal/auth"
 	"escrow-agent/internal/db"
+	"escrow-agent/internal/escrow"
 	"escrow-agent/internal/middleware"
 	"escrow-agent/internal/profile"
 	"escrow-agent/internal/transactions"
@@ -39,6 +40,8 @@ func main() {
 	api.HandleFunc("/transactions/{id}", transactions.GetTransactionHandler).Methods("GET")
 	api.HandleFunc("/transactions/{id}/fulfill", transactions.FulfillTransactionHandler).Methods("PUT")
 	api.HandleFunc("/transactions/{id}/confirm", transactions.ConfirmDeliveryHandler).Methods("PUT")
+
+	api.HandleFunc("/escrow/{id}/deposit", escrow.DepositEscrowHandler).Methods("POST")
 
 	// Setup CORS
 	c := cors.New(cors.Options{

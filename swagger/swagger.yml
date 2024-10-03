@@ -282,64 +282,10 @@ paths:
       security:
         - BearerAuth: []
 
-
-  /api/escrow:
+  /api/escrow/{id}/deposit:
     post:
-      summary: Creates a new escrow
-      description: Creates an escrow transaction between a buyer and seller.
-      tags:
-        - escrow
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateEscrowRequest'
-      responses:
-        '201':
-          description: Escrow created successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateEscrowResponse'
-        '400':
-          description: Invalid escrow data
-      security:
-        - BearerAuth: []  
-
-  /api/escrow/{id}/release:
-      post:
-        summary: Releases escrow funds
-        description: Releases funds from escrow to the seller.
-        tags:
-          - escrow
-        parameters:
-          - name: id
-            in: path
-            required: true
-            schema:
-              type: string
-            description: "Escrow ID of the transaction"
-        responses:
-          '200':
-            description: Funds released successfully
-            content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/ReleaseFundsResponse'
-          '400':
-            description: Invalid escrow ID or escrow not in pending state
-            content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/ErrorResponse'
-        security:
-          - BearerAuth: [] 
-
-  /api/escrow/{id}/dispute:
-    post:
-      summary: Disputes an escrow transaction
-      description: Files a dispute for an escrow transaction.
+      summary: Deposit funds into escrow for a transaction (by buyer)
+      description: Allows the buyer to deposit funds into escrow for a transaction.
       tags:
         - escrow
       parameters:
@@ -347,63 +293,46 @@ paths:
           in: path
           required: true
           schema:
-            type: string
-          description: "Escrow ID of the transaction"
+            type: integer
+          description: The ID of the transaction
+      requestBody:
+        description: The amount to be deposited into escrow
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: number
+                  format: float
+                  description: The amount to be deposited into escrow
+                  example: 500.00
       responses:
         '200':
-          description: Dispute filed successfully
+          description: Escrow deposit successful
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DisputeEscrowResponse'
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Escrow deposit successful
+                  escrow_id:
+                    type: integer
+                    example: 1
         '400':
-          description: Invalid escrow ID or escrow not in pending state
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'   
-      security:
-        - BearerAuth: []
-
-  /api/escrow/pending:
-    get:
-      summary: Gets all pending escrows
-      description: Returns a list of all pending escrow transactions.
-      tags:
-        - escrow
-      responses:
-        '200':
-          description: List of pending escrows
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/PendingEscrowResponse'
+          description: Bad request (invalid transaction or amount)
+        '401':
+          description: Unauthorized - Invalid or missing JWT token
+        '404':
+          description: Transaction not found
         '500':
           description: Internal server error
       security:
         - BearerAuth: []
 
-  /api/escrow/disputed:
-    get:
-      summary: Gets all disputed escrows
-      description: Returns a list of all disputed escrow transactions.
-      tags:
-        - escrow
-      responses:
-        '200':
-          description: List of disputed escrows
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DisputedEscrowResponse'
-        '500':
-          description: Internal server error
-      security:
-        - BearerAuth: []
 
   /api/upload:
     post:
