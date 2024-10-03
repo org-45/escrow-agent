@@ -9,7 +9,7 @@ on:
       - main
 
 permissions:
-  contents: write 
+  contents: write   # Allow GitHub Actions to push changes
 
 jobs:
   test:
@@ -19,7 +19,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.GITHUB_TOKEN }}  # Ensure this is present
 
     - name: Set up Go
       uses: actions/setup-go@v4
@@ -68,8 +68,17 @@ jobs:
         git add badge.json
         git commit -m "Update coverage badge"
 
-    # Push the changes to the current branch
-    - name: Push changes
+    # Push the changes to the source branch of the pull request
+    - name: Push changes to PR branch
+      if: github.event_name == 'pull_request'
+      run: |
+        git push origin HEAD:${{ github.head_ref }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    # Push the changes to the main branch if not in a pull request
+    - name: Push changes to main
+      if: github.event_name == 'push'
       run: |
         git push origin HEAD:${{ github.ref }}
       env:
