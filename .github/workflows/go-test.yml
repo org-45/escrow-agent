@@ -71,8 +71,17 @@ jobs:
         git add badge.json
         git commit -m "Update coverage badge"
 
-    # Push changes to the triggering branch (whether it's a PR branch or main)
-    - name: Push changes
+    # Push changes to the pull request source branch (GITHUB_HEAD_REF)
+    - name: Push changes to PR branch
+      if: github.event_name == 'pull_request'
+      run: |
+        git push origin HEAD:${{ github.head_ref }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    # Push changes to the main branch if not in a pull request
+    - name: Push changes to main
+      if: github.event_name == 'push'
       run: |
         git push origin HEAD:${{ github.ref }}
       env:
