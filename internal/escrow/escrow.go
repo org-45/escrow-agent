@@ -85,3 +85,49 @@ func DepositEscrowHandler(w http.ResponseWriter, r *http.Request) {
 		"escrow_id": escrowID,
 	})
 }
+
+func ReleaseEscrowHandler(w http.ResponseWriter, r *http.Request) {
+	claims, ok := r.Context().Value("user").(*middleware.Claims)
+	if !ok || claims.Role != "buyer" {
+		log.Printf("[ERROR] Unauthorized access attempt by userID %d with role %s", claims.UserID, claims.Role)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	vars := mux.Vars(r)
+	transactionIDStr := vars["id"]
+	transactionID, err := strconv.Atoi(transactionIDStr)
+	if err != nil {
+		http.Error(w, "Invalid transaction ID", http.StatusBadRequest)
+		return
+	}
+
+	var transaction models.Transaction
+	err = db.DB.Get(&transaction, "SELECT * FROM transactions WHERE transaction_id = $1", transactionID)
+	if err != nil {
+		http.Error(w, "Transaction not found", http.StatusNotFound)
+		return
+	}
+
+	if transaction.Status != "in_progress" && transaction.Status != "pending" {
+		http.Error(w, "Cannot release funds for this transaction", http.StatusBadRequest)
+		return
+	}
+
+	_, err = db.DB.Exec("UPDATE escrow_accounts SET status = 'released' WHERE transaction_id = $1", transactionID)
+	if err != nil {
+		http.Error(w, "Failed to release funds from escrow", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = db.DB.Exec("UPDATE transactions SET status = 'completed', updated_at = NOW() WHERE transaction_id = $1", transactionID)
+	if err != nil {
+		http.Error(w, "Failed to update transaction status", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Funds successfully released to the seller",
+	})
+}

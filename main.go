@@ -42,6 +42,7 @@ func main() {
 	api.HandleFunc("/transactions/{id}/confirm", transactions.ConfirmDeliveryHandler).Methods("PUT")
 
 	api.HandleFunc("/escrow/{id}/deposit", escrow.DepositEscrowHandler).Methods("POST")
+	api.HandleFunc("/escrow/{id}/release", escrow.ReleaseEscrowHandler).Methods("PUT")
 
 	// Setup CORS
 	c := cors.New(cors.Options{

@@ -333,6 +333,62 @@ paths:
       security:
         - BearerAuth: []
 
+  /api/escrow/{id}/release:
+    put:
+      summary: Release funds from escrow to the seller
+      description: This endpoint releases the escrowed funds to the seller. Only admin or system can perform this operation.
+      tags:
+        - escrow
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the transaction to release funds for
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Funds successfully released to the seller
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Funds successfully released to the seller"
+        '400':
+          description: Bad request - Invalid transaction status or other validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Cannot release funds for this transaction"
+        '404':
+          description: Not Found - Transaction not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Transaction not found"
+        '500':
+          description: Server error - An error occurred while processing the request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to release funds from escrow"
+      security:
+        - BearerAuth: []
 
   /api/upload:
     post:
