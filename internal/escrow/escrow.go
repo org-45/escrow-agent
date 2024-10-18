@@ -59,6 +59,11 @@ func DepositEscrowHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("Transaction %v", transaction)
 
+	if req.Amount != transaction.Amount {
+		http.Error(w, "Escrow deposit amount must match the transaction amount", http.StatusBadRequest)
+		return
+	}
+
 	validStatuses := map[string]bool{"pending": true, "deposited": true, "in_progress": true}
 	transactionStatus := strings.ToLower(strings.TrimSpace(transaction.Status))
 
@@ -114,9 +119,9 @@ func ReleaseEscrowHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = db.DB.Exec("UPDATE escrow_accounts SET status = 'released' WHERE transaction_id = $1", transactionID)
+	_, err = db.DB.Exec("UPDATE escrow_accounts SET status = 'released', escrowed_amount = 0 WHERE transaction_id = $1", transactionID)
 	if err != nil {
-		http.Error(w, "Failed to release funds from escrow", http.StatusInternalServerError)
+		http.Error(w, "Failed to update escrow status", http.StatusInternalServerError)
 		return
 	}
 
