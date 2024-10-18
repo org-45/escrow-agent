@@ -46,6 +46,8 @@ func main() {
 	api.HandleFunc("/escrow/{id}/release", escrow.ReleaseEscrowHandler).Methods("PUT")
 
 	api.HandleFunc("/admin/users", admin.GetUsersHandler).Methods("GET")
+	api.HandleFunc("/admin/users/{id}", admin.GetUserByIDHandler).Methods("GET")
+	api.HandleFunc("/admin/transactions", admin.GetTransactionsHandler).Methods("GET")
 
 	// Setup CORS
 	c := cors.New(cors.Options{

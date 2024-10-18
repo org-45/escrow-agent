@@ -410,6 +410,72 @@ paths:
       security:
         - BearerAuth: []
 
+  /api/admin/users/{id}:
+    get:
+      summary: Get details of a specific user
+      description: Returns details of a specific user by ID. Admin-only access.
+      tags:
+        - Admin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the user to retrieve
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: User details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid user ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid user ID"
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "User not found"
+        '401':
+          description: Unauthorized - Admin-only access
+      security:
+        - BearerAuth: []
+
+
+  /api/admin/transactions:
+    get:
+      summary: Get a list of all transactions
+      description: Returns a list of all transactions in the system. Admin-only access.
+      tags:
+        - Admin
+      responses:
+        '200':
+          description: A list of all transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transaction'
+        '401':
+          description: Unauthorized - Admin-only access
+      security:
+        - BearerAuth: []
+
   /api/upload:
     post:
       summary: Uploads a file
@@ -511,27 +577,6 @@ components:
           type: string
           format: date-time
           example: "2023-10-01T15:23:45Z"
-
-    Transaction:
-      type: object
-      properties:
-        transaction_id:
-          type: integer
-        buyer_id:
-          type: integer
-        seller_id:
-          type: integer
-        amount:
-          type: number
-          format: float
-        status:
-          type: string
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
 
     CreateEscrowRequest:
       type: object
@@ -701,3 +746,28 @@ components:
           type: string
           format: date-time
           example: "2024-10-03T10:00:00Z"
+
+    Transaction:
+      type: object
+      properties:
+        transaction_id:
+          type: integer
+          example: 1
+        buyer_id:
+          type: integer
+          example: 2
+        seller_id:
+          type: integer
+          example: 3
+        amount:
+          type: number
+          format: float
+          example: 100.50
+        status:
+          type: string
+          example: "in_progress"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-10-03T10:00:00Z"
+
