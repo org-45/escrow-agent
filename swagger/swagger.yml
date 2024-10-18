@@ -390,6 +390,35 @@ paths:
       security:
         - BearerAuth: []
 
+  /api/logs/{transaction_id}:
+    get:
+      summary: Get a list of all logs for a specific transaction
+      description: Retrieves a list of logs associated with a specific transaction.
+      tags:
+        - Logs
+      parameters:
+        - name: transaction_id
+          in: path
+          required: true
+          description: The ID of the transaction to retrieve logs for
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A list of logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TransactionLog'
+        '400':
+          description: Invalid transaction ID
+        '500':
+          description: Failed to fetch logs
+      security:
+        - BearerAuth: []
+
   /api/admin/users:
     get:
       summary: Get a list of all users
@@ -771,3 +800,23 @@ components:
           format: date-time
           example: "2024-10-03T10:00:00Z"
 
+
+    TransactionLog:
+      type: object
+      properties:
+        log_id:
+          type: integer
+          example: 1
+        transaction_id:
+          type: integer
+          example: 123
+        event_type:
+          type: string
+          example: "TransactionCreated"
+        event_details:
+          type: string
+          example: "{\"message\": \"Transaction created by buyer\"}"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-10-03T10:00:00Z"

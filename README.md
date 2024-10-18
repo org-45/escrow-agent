@@ -64,7 +64,6 @@ Answer: Over Engineered Software Development.
 | Method | Endpoint                        | Description                                                     |
 |--------|---------------------------------|-----------------------------------------------------------------|
 | GET    | `/logs/{transaction_id}`         | Get a list of all logs for a specific transaction                |
-| GET    | `/notifications`                | Get a list of notifications for the logged-in user               |
 
 
 #### Overview

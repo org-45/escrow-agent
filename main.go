@@ -12,6 +12,7 @@ import (
 	"escrow-agent/internal/auth"
 	"escrow-agent/internal/db"
 	"escrow-agent/internal/escrow"
+	"escrow-agent/internal/logs"
 	"escrow-agent/internal/middleware"
 	"escrow-agent/internal/profile"
 	"escrow-agent/internal/transactions"
@@ -48,6 +49,8 @@ func main() {
 	api.HandleFunc("/admin/users", admin.GetUsersHandler).Methods("GET")
 	api.HandleFunc("/admin/users/{id}", admin.GetUserByIDHandler).Methods("GET")
 	api.HandleFunc("/admin/transactions", admin.GetTransactionsHandler).Methods("GET")
+
+	api.HandleFunc("/logs/{transaction_id}", logs.GetTransactionLogsHandler).Methods("GET")
 
 	// Setup CORS
 	c := cors.New(cors.Options{
