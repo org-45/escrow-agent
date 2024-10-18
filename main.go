@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"time"
 
+	"escrow-agent/internal/admin"
 	"escrow-agent/internal/auth"
 	"escrow-agent/internal/db"
 	"escrow-agent/internal/escrow"
@@ -43,6 +44,8 @@ func main() {
 
 	api.HandleFunc("/escrow/{id}/deposit", escrow.DepositEscrowHandler).Methods("POST")
 	api.HandleFunc("/escrow/{id}/release", escrow.ReleaseEscrowHandler).Methods("PUT")
+
+	api.HandleFunc("/admin/users", admin.GetUsersHandler).Methods("GET")
 
 	// Setup CORS
 	c := cors.New(cors.Options{

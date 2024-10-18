@@ -390,6 +390,26 @@ paths:
       security:
         - BearerAuth: []
 
+  /api/admin/users:
+    get:
+      summary: Get a list of all users
+      description: Returns a list of all users in the system. Admin-only access.
+      tags:
+        - Admin
+      responses:
+        '200':
+          description: A list of all users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized - Admin-only access
+      security:
+        - BearerAuth: []
+
   /api/upload:
     post:
       summary: Uploads a file
@@ -664,3 +684,20 @@ components:
         - name
         - email
         - phone
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: "admin_user"
+        role:
+          type: string
+          example: "admin"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-10-03T10:00:00Z"
