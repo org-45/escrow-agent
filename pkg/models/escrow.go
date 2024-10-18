@@ -59,3 +59,11 @@ type EscrowAccount struct {
 	Status        string    `db:"status" json:"status"`
 	CreatedAt     time.Time `db:"created_at" json:"created_at"`
 }
+
+type TransactionLog struct {
+	LogID         int       `db:"log_id" json:"log_id"`
+	TransactionID int       `db:"transaction_id" json:"transaction_id"`
+	EventType     string    `db:"event_type" json:"event_type"`
+	EventDetails  string    `db:"event_details" json:"event_details"`
+	CreatedAt     time.Time `db:"created_at" json:"created_at"`
+}

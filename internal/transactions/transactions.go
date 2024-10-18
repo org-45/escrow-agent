@@ -5,6 +5,7 @@ import (
 	"escrow-agent/internal/db"
 	"escrow-agent/internal/middleware"
 	"escrow-agent/pkg/models"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -53,6 +54,22 @@ func CreateTransactionHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("[ERROR] Failed to create transaction: %v", err)
 		http.Error(w, "Failed to create transaction", http.StatusInternalServerError)
 		return
+	}
+
+	transactionJSON, err := json.Marshal(transaction)
+	if err != nil {
+		log.Printf("[ERROR] Failed to marshal transaction to JSON: %v", err)
+		transactionJSON = []byte("{}")
+	}
+
+	logQuery := `
+		INSERT INTO transaction_logs (transaction_id, event_type, event_details, created_at)
+		VALUES ($1, 'TransactionCreated', $2, NOW())
+	`
+	eventDetails := fmt.Sprintf("Transaction created by buyer: %s", string(transactionJSON))
+	_, err = db.DB.Exec(logQuery, transaction.TransactionID, eventDetails)
+	if err != nil {
+		log.Printf("[ERROR] Failed to insert log for transaction ID %d: %v", transaction.TransactionID, err)
 	}
 
 	w.WriteHeader(http.StatusCreated)
@@ -132,7 +149,6 @@ func GetTransactionHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func FulfillTransactionHandler(w http.ResponseWriter, r *http.Request) {
-	// Extract claims from the request context (added by the middleware)
 	claims, ok := r.Context().Value("user").(*middleware.Claims)
 	if !ok || claims.Role != "seller" {
 		log.Printf("[ERROR] Unauthorized access attempt - invalid role or missing claims")
@@ -140,7 +156,6 @@ func FulfillTransactionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Extract the transaction_id from the URL parameters
 	vars := mux.Vars(r)
 	transactionID, err := strconv.Atoi(vars["id"])
 	if err != nil {
@@ -148,7 +163,6 @@ func FulfillTransactionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Fetch the transaction details from the database
 	var transaction models.Transaction
 	query := `
 		SELECT transaction_id, buyer_id, seller_id, status
@@ -162,20 +176,17 @@ func FulfillTransactionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Ensure the logged-in user is the seller of this transaction
 	if transaction.SellerID != claims.UserID {
 		log.Printf("[ERROR] Unauthorized access to transaction by userID %d", claims.UserID)
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	// Ensure the transaction is in the correct status to be fulfilled
 	if transaction.Status != "pending" {
 		http.Error(w, "Transaction cannot be fulfilled in its current status", http.StatusBadRequest)
 		return
 	}
 
-	// Update the transaction status to "fulfilled"
 	updateQuery := `
 		UPDATE transactions
 		SET status = 'deposited', updated_at = NOW()
@@ -188,7 +199,22 @@ func FulfillTransactionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Respond with success message
+	transactionJSON, err := json.Marshal(transaction)
+	if err != nil {
+		log.Printf("[ERROR] Failed to marshal transaction to JSON: %v", err)
+		transactionJSON = []byte("{}")
+	}
+
+	logQuery := `
+		INSERT INTO transaction_logs (transaction_id, event_type, event_details, created_at)
+		VALUES ($1, 'TransactionFulfilled', $2, NOW())
+	`
+	eventDetails := fmt.Sprintf("Transaction fulfilled by seller: %s", string(transactionJSON))
+	_, err = db.DB.Exec(logQuery, transactionID, eventDetails)
+	if err != nil {
+		log.Printf("[ERROR] Failed to insert log for transaction ID %d: %v", transactionID, err)
+	}
+
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Transaction marked as fulfilled"})
 }
@@ -242,6 +268,22 @@ func ConfirmDeliveryHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("[ERROR] Failed to update transaction status for ID %d: %v", transactionID, err)
 		http.Error(w, "Failed to update transaction", http.StatusInternalServerError)
 		return
+	}
+
+	transactionJSON, err := json.Marshal(transaction)
+	if err != nil {
+		log.Printf("[ERROR] Failed to marshal transaction to JSON: %v", err)
+		transactionJSON = []byte("{}")
+	}
+
+	logQuery := `
+		INSERT INTO transaction_logs (transaction_id, event_type, event_details, created_at)
+		VALUES ($1, 'TransactionConfirmed', $2, NOW())
+	`
+	eventDetails := fmt.Sprintf("Transaction confirmed by buyer: %s", string(transactionJSON))
+	_, err = db.DB.Exec(logQuery, transactionID, eventDetails)
+	if err != nil {
+		log.Printf("[ERROR] Failed to insert log for transaction ID %d: %v", transactionID, err)
 	}
 
 	w.WriteHeader(http.StatusOK)
