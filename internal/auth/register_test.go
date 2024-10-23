@@ -17,7 +17,6 @@ import (
 )
 
 func TestRegisterHandler_Success(t *testing.T) {
-	// Setup the mock database connection
 	mockDB, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("Failed to open mock DB: %v", err)
@@ -28,13 +27,11 @@ func TestRegisterHandler_Success(t *testing.T) {
 
 	db.DB = sqlxDB
 
-	// Set expectations for mock queries
 	createdAt := time.Now()
 	mock.ExpectQuery("INSERT INTO users").
 		WithArgs("testuser", sqlmock.AnyArg(), "buyer").
 		WillReturnRows(sqlmock.NewRows([]string{"created_at"}).AddRow(createdAt))
 
-	// Create a valid request payload
 	registerReq := auth.RegisterRequest{
 		Username: "testuser",
 		Password: "password123",
@@ -65,7 +62,6 @@ func TestRegisterHandler_Success(t *testing.T) {
 }
 
 func TestRegisterHandler_InvalidInput(t *testing.T) {
-	//  an invalid request payload
 	invalidReq := auth.RegisterRequest{
 		Username: "",
 		Password: "short",
