@@ -11,7 +11,7 @@ const Login: React.FC = () => {
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
-            const token = localStorage.getItem('jwt');
+            const token = localStorage.getItem('escrow-agent-client-jwt');
             if (token) {
                 router.push('/');
             }
@@ -20,7 +20,7 @@ const Login: React.FC = () => {
 
     const onLoginSuccess = (token: string) => {
         if (typeof window !== 'undefined') {
-            localStorage.setItem('jwt', token); 
+            localStorage.setItem('escrow-agent-client-jwt', token); 
             router.push('/');
         }
     };

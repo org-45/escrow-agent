@@ -3,6 +3,7 @@ package auth
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
 	"escrow-agent/internal/db"
@@ -43,6 +44,9 @@ func validateInput(req RegisterRequest) error {
 }
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
+
+	log.Println("RegisterHandler called")
+
 	var req RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
@@ -59,6 +63,8 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to hash password", http.StatusInternalServerError)
 		return
 	}
+
+	log.Printf("Registering user: %v", req.Username)
 
 	var createdAt time.Time
 	err = db.DB.QueryRow(

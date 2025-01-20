@@ -24,7 +24,7 @@ const Home: React.FC<LogoutProps> = ({onLogout}) => {
     const [uploadMessage, setUploadMessage] = useState<string>('');
 
     useEffect(() => {
-        const token = localStorage.getItem('jwt');
+        const token = localStorage.getItem('escrow-agent-client-jwt');
         if (!token) {
             router.push('/login');
         } else {
@@ -74,7 +74,7 @@ const Home: React.FC<LogoutProps> = ({onLogout}) => {
             return;
         }
 
-        const token = localStorage.getItem('jwt');
+        const token = localStorage.getItem('escrow-agent-client-jwt');
 
         if (!token) {
             setUploadMessage('You must be logged in to upload files.');

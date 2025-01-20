@@ -11,7 +11,7 @@ const Main: React.FC = () => {
     const router = useRouter();
 
     useEffect(() => {
-        const token = localStorage.getItem('jwt');
+        const token = localStorage.getItem('escrow-agent-client-jwt');
         if (token) {
             setJwt(token);
             setCurrentPage('home');
