@@ -10,6 +10,8 @@ COPY . .
 
 RUN go build -o main .
 
+COPY .env .
+
 EXPOSE 8080
 
 CMD ["./main"]

@@ -4,6 +4,7 @@ import (
 	"escrow-agent/internal/admin"
 	"escrow-agent/internal/auth"
 	"escrow-agent/internal/escrow"
+	"escrow-agent/internal/fileupload"
 	"escrow-agent/internal/logs"
 	"escrow-agent/internal/middleware"
 	"escrow-agent/internal/profile"
@@ -40,6 +41,8 @@ func SetupRouter() *mux.Router {
 	api.HandleFunc("/admin/transactions", admin.GetTransactionsHandler).Methods("GET")
 
 	api.HandleFunc("/logs/{transaction_id}", logs.GetTransactionLogsHandler).Methods("GET")
+
+	api.HandleFunc("/upload", fileupload.UploadHandler).Methods("POST")
 
 	return r
 }

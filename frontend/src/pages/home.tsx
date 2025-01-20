@@ -1,5 +1,5 @@
 import React, {ChangeEvent, FormEvent, useEffect, useState} from 'react';
-import {getAllPendingEscrows, createEscrow, EscrowAPI, getUserDetails, User} from '../services/api';
+import { createEscrow, getTransactions, getUserDetails, User} from '../services/api';
 import {useRouter} from 'next/router';
 import axios from 'axios';
 
@@ -14,16 +14,9 @@ const Home: React.FC<LogoutProps> = ({onLogout}) => {
         role: 'buyer, seller, admin',
         created_at: '2023-10-01T15:23:45Z',
     });
-    const [pendingEscrows, setPendingEscrows] = useState<EscrowAPI[]>([]);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
 
-    const [newEscrow, setNewEscrow] = useState({
-        BuyerID: '',
-        SellerID: '',
-        Amount: 0,
-        Description: '',
-    });
 
     const [file, setFile] = useState<File | null>(null);
     const [uploadMessage, setUploadMessage] = useState<string>('');
@@ -33,16 +26,6 @@ const Home: React.FC<LogoutProps> = ({onLogout}) => {
         if (!token) {
             router.push('/login');
         } else {
-            const fetchPendingEscrows = async () => {
-                try {
-                    const escrows = await getAllPendingEscrows();
-                    setPendingEscrows(escrows);
-                } catch (err) {
-                    setError('Failed to fetch pending escrows');
-                    console.error(err);
-                }
-            };
-            fetchPendingEscrows();
 
             const fetchUserDetails = async () => {
                 try {
@@ -57,25 +40,6 @@ const Home: React.FC<LogoutProps> = ({onLogout}) => {
             fetchUserDetails();
         }
     }, [router]);
-
-    const handleCreateEscrow = async (event: React.FormEvent) => {
-        event.preventDefault();
-        try {
-            const escrowData = {
-                BuyerID: newEscrow.BuyerID,
-                SellerID: newEscrow.SellerID,
-                Amount: newEscrow.Amount,
-                Description: newEscrow.Description,
-            };
-
-            const escrow = await createEscrow(escrowData);
-            setPendingEscrows([...pendingEscrows, escrow]);
-            setNewEscrow({BuyerID: '', SellerID: '', Amount: 0, Description: ''});
-        } catch (err) {
-            setError('Failed to create escrow');
-            console.error(err);
-        }
-    };
 
     const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
         if (event.target.files && event.target.files.length > 0) {
@@ -125,46 +89,8 @@ const Home: React.FC<LogoutProps> = ({onLogout}) => {
 
             {localStorage.getItem('escrow-agent-client-role') == 'buyer' ? <CreateTransaction /> : null}
 
-            <h2>Create New Escrow</h2>
-            <form onSubmit={handleCreateEscrow}>
-                <div>
-                    <label>Buyer ID:</label>
-                    <input
-                        type="text"
-                        value={newEscrow.BuyerID}
-                        onChange={e => setNewEscrow({...newEscrow, BuyerID: e.target.value})}
-                        required
-                    />
-                </div>
-                <div>
-                    <label>Seller ID:</label>
-                    <input
-                        type="text"
-                        value={newEscrow.SellerID}
-                        onChange={e => setNewEscrow({...newEscrow, SellerID: e.target.value})}
-                        required
-                    />
-                </div>
-                <div>
-                    <label>Amount:</label>
-                    <input
-                        type="number"
-                        value={newEscrow.Amount}
-                        onChange={e => setNewEscrow({...newEscrow, Amount: parseFloat(e.target.value)})}
-                        required
-                    />
-                </div>
-                <div>
-                    <label>Description:</label>
-                    <input
-                        type="text"
-                        value={newEscrow.Description}
-                        onChange={e => setNewEscrow({...newEscrow, Description: e.target.value})}
-                        required
-                    />
-                </div>
-                <button type="submit">Create Escrow</button>
-            </form>
+						<TransactionsTable/>
+						
             <h4>File upload</h4>
             <form onSubmit={handleFileUpload}>
                 <div>
@@ -181,16 +107,18 @@ export default Home;
 
 function CreateTransaction() {
     const [formData, setFormData] = useState({
-        seller_id: 0,
-        amount: 0,
-        status: 'pending', // Default status
+        seller_id: '',
+        amount: '',
+        status: 'pending',
     });
 
     const handleChange = (e: any) => {
         const {name, value, type} = e.target;
+        const normalizedValue = type === 'number' ? (value === '' ? '' : Number(value)) : value;
+
         setFormData({
             ...formData,
-            [name]: type === 'number' ? Number(value) : value,
+            [name]: normalizedValue,
         });
     };
 
@@ -247,3 +175,82 @@ function CreateTransaction() {
         </form>
     );
 }
+
+
+const TransactionsTable = () => {
+    const [transactions, setTransactions] = useState([
+        {
+            transaction_id: 2,
+            buyer_id: 4,
+            seller_id: 2,
+            amount: 25,
+            status: 'pending',
+            created_at: '2025-01-20T11:21:28.624658Z',
+            updated_at: '2025-01-20T11:21:28.624658Z',
+        },
+    ]); // State for transactions
+    const [loading, setLoading] = useState(true); // State for loading indicator
+    const [error, setError] = useState(null); // State for error handling
+
+    // Fetch transactions from an API or a mock function
+    useEffect(() => {
+        const fetchTransactions = async () => {
+            try {
+                setLoading(true);
+                const token = localStorage.getItem('escrow-agent-client-jwt');
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/transactions`, {
+                    headers: {
+                        Accept: 'application/json',
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to fetch transactions');
+                }
+                const data = await response.json();
+                setTransactions(data);
+            } catch (err:any) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchTransactions();
+    }, []);
+
+    if (loading) return <p>Loading...</p>;
+    if (error) return <p>Error: {error}</p>;
+
+    return (
+        <div>
+            <h4>Transactions</h4>
+            <table style={{width: '50%', borderCollapse: 'collapse'}}>
+                <thead>
+                    <tr>
+                        <th>Transaction ID</th>
+                        <th>Buyer ID</th>
+                        <th>Seller ID</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Created At</th>
+                        <th>Updated At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {transactions.map(transaction => (
+                        <tr key={transaction.transaction_id}>
+                            <td>{transaction.transaction_id}</td>
+                            <td>{transaction.buyer_id}</td>
+                            <td>{transaction.seller_id}</td>
+                            <td>{transaction.amount}</td>
+                            <td>{transaction.status}</td>
+                            <td>{new Date(transaction.created_at).toLocaleString()}</td>
+                            <td>{new Date(transaction.updated_at).toLocaleString()}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    );
+};

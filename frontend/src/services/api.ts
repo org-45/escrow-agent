@@ -37,6 +37,22 @@ export interface User{
 	created_at:string
 }
 
+export const getTransactions = async () => {
+    try {
+        const token = getAuthToken();
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/transactions`, {
+            headers: {
+                accept: 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error creating escrow:', error);
+        throw error;
+    }
+};
+
 export const getUserDetails = async () => {
     try {
         const token = getAuthToken();
