@@ -2,7 +2,6 @@ import axios from 'axios';
 
 export const API_BASE_URL = 'http://localhost:8080';
 
-
 const getAuthToken = () => {
     return localStorage.getItem('escrow-agent-client-jwt');
 };
@@ -30,6 +29,29 @@ export interface EscrowAPI {
     DisputedAt?: string;
     Description: string;
 }
+
+export interface User{
+	username:string;
+	id:number;
+	role:string;
+	created_at:string
+}
+
+export const getUserDetails = async () => {
+    try {
+        const token = getAuthToken();
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/profile`, {
+            headers: {
+                accept: 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error creating escrow:', error);
+        throw error;
+    }
+};
 
 export const createEscrow = async (escrowData: Omit<EscrowAPI, 'ID' | 'Status' | 'CreatedAt'>): Promise<EscrowAPI> => {
     try {

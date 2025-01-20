@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import axios from 'axios';
-import {useRouter} from 'next/router';
+import {API_BASE_URL} from '@/services/api';
 
 interface SignupProps {
     onSignupSuccess: () => void;
@@ -9,14 +9,16 @@ interface SignupProps {
 const Signup: React.FC<SignupProps> = ({onSignupSuccess}) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [role, setRole] = useState('');
     const [error, setError] = useState<string | null>(null);
 
     const handleSignup = async (event: React.FormEvent) => {
         event.preventDefault();
         try {
-            const response = await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/signup`, {
+            const response = await axios.post(`${API_BASE_URL}/register`, {
                 username,
                 password,
+                role,
             });
 
             if (response.status === 201) {
@@ -45,6 +47,11 @@ const Signup: React.FC<SignupProps> = ({onSignupSuccess}) => {
                     <label>Password:</label>
                     <input type="password" value={password} onChange={e => setPassword(e.target.value)} required />
                 </div>
+                <div>
+                    <label>Role:</label>
+                    <input type="text" value={role} onChange={e => setRole(e.target.value)} required />
+                </div>
+
                 <button type="submit">Signup</button>
             </form>
         </div>

@@ -24,17 +24,9 @@ const Main: React.FC = () => {
         setCurrentPage('login');
     };
 
-    // const onLoginSuccess = (token: string) => {
-    //     localStorage.setItem('jwt', token);
-    //     setJwt(token);
-    //     setCurrentPage('home');
-    //     router.push('/');
-    // };
-
-
     const onLogout = () => {
         // Clear JWT from local storage
-        localStorage.removeItem('jwt');
+        localStorage.removeItem('escrow-agent-client-jwt');
         setJwt(null);
         setCurrentPage('login');
         router.push('/login');
