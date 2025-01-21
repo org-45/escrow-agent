@@ -2,17 +2,28 @@ package fileupload
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"escrow-agent/internal/db"
 
+	"github.com/gorilla/mux"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
+
+type File struct {
+	ID            int       `json:"id"`
+	TransactionID int       `json:"transaction_id"`
+	FileName      string    `json:"file_name"`
+	FilePath      string    `json:"file_path"`
+	UploadedAt    time.Time `json:"uploaded_at"`
+}
 
 var minioClient *minio.Client
 
@@ -136,4 +147,62 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	// Success response
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "File uploaded successfully: %s (%d bytes)\n", objectName, info.Size)
+}
+
+func ListFilesHandler(w http.ResponseWriter, r *http.Request) {
+	// Extract transactionID from the URL path
+	vars := mux.Vars(r)
+	transactionIDStr := vars["transactionID"]
+
+	// Convert transactionID to an integer
+	transactionID, err := strconv.Atoi(transactionIDStr)
+	if err != nil {
+		http.Error(w, "Invalid transaction ID", http.StatusBadRequest)
+		return
+	}
+
+	// Query the database for files associated with the transactionID
+	query := `
+        SELECT id, transaction_id, file_name, file_path, uploaded_at
+        FROM files
+        WHERE transaction_id = $1
+    `
+	rows, err := db.DB.Query(query, transactionID)
+	if err != nil {
+		log.Printf("Error querying database: %v\n", err)
+		http.Error(w, "Failed to retrieve files", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	// Iterate over the rows and build a list of files
+	var files []File
+	for rows.Next() {
+		var file File
+		err := rows.Scan(&file.ID, &file.TransactionID, &file.FileName, &file.FilePath, &file.UploadedAt)
+		if err != nil {
+			log.Printf("Error scanning row: %v\n", err)
+			http.Error(w, "Failed to read file data", http.StatusInternalServerError)
+			return
+		}
+		files = append(files, file)
+	}
+
+	// Check for errors during iteration
+	if err = rows.Err(); err != nil {
+		log.Printf("Error iterating rows: %v\n", err)
+		http.Error(w, "Failed to retrieve files", http.StatusInternalServerError)
+		return
+	}
+
+	// Return a 404 if no files are found
+	if len(files) == 0 {
+		http.Error(w, "No files found for the given transaction ID", http.StatusNotFound)
+		return
+	}
+
+	// Return the list of files as JSON
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(files)
 }

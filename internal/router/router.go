@@ -43,6 +43,7 @@ func SetupRouter() *mux.Router {
 	api.HandleFunc("/logs/{transaction_id}", logs.GetTransactionLogsHandler).Methods("GET")
 
 	api.HandleFunc("/upload", fileupload.UploadHandler).Methods("POST")
+	api.HandleFunc("/transactions/{transactionID}/files", fileupload.ListFilesHandler).Methods("GET")
 
 	return r
 }

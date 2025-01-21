@@ -543,6 +543,37 @@ paths:
       security:
         - BearerAuth: []
 
+  /api/transactions/{transactionID}/files:
+    get:
+      summary: List files for a transaction
+      description: Returns a list of files associated with the given transaction ID.
+      tags:
+        - File Upload
+      parameters:
+        - name: transactionID
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the transaction to list files for.
+      responses:
+        '200':
+          description: A list of files
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/File'
+        '400':
+          description: Invalid transaction ID
+        '404':
+          description: No files found for the given transaction ID
+        '500':
+          description: Failed to retrieve files
+      security:
+        - BearerAuth: []
+
   /api/customer:
     post:
       summary: Creates a new customer
@@ -847,3 +878,23 @@ components:
           type: string
           format: date-time
           example: "2024-10-03T10:00:00Z"
+
+    File:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        transaction_id:
+          type: integer
+          example: 3
+        file_name:
+          type: string
+          example: contract.pdf
+        file_path:
+          type: string
+          example: transactions/12345/contract.pdf
+        uploaded_at:
+          type: string
+          format: date-time
+          example: "2025-01-21T12:34:56Z"
