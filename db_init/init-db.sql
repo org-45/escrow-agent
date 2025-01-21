@@ -37,8 +37,3 @@ CREATE TABLE transaction_logs (
     event_details TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
-
-
-
-
-

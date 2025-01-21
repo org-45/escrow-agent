@@ -510,7 +510,7 @@ paths:
       summary: Uploads a file
       description: Uploads a file for escrow documents.
       tags:
-        - fileupload (TODO feature)
+        - fileupload
       requestBody:
         required: true
         content:
@@ -520,6 +520,26 @@ paths:
       responses:
         '200':
           description: File uploaded successfully
+        '400':
+          description: Bad request (e.g., missing transaction ID or file)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Transaction ID is required
+        '500':
+          description: Internal server error (e.g., failed to upload file or save metadata)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Failed to upload file
       security:
         - BearerAuth: []
 
@@ -744,6 +764,13 @@ components:
         file:
           type: string
           format: binary
+        transactionID:
+          type: string
+          description: The ID of the transaction to associate the file with.
+          example: 12345
+      required:
+        - file
+        - transactionID
 
     CreateCustomerRequest:
       type: object

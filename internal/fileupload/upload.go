@@ -8,6 +8,8 @@ import (
 	"os"
 	"time"
 
+	"escrow-agent/internal/db"
+
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
@@ -64,25 +66,17 @@ func setupMinIO() error {
 	if err != nil {
 		return fmt.Errorf("failed to create bucket after retries: %v", err)
 	}
-	// Set CORS rules
-	// corsConfig := &cors.Config{
-	// 	CORSRules: []cors.Rule{
-	// 		{
-	// 			AllowedOrigin: []string{"*"},
-	// 			AllowedMethod: []string{"GET", "PUT", "POST", "DELETE"},
-	// 			AllowedHeader: []string{"*"},
-	// 			ExposeHeader:  []string{"ETag"},
-	// 			MaxAgeSeconds: 3000,
-	// 		},
-	// 	},
-	// }
-	// err = minioClient.SetBucketCors(ctx, bucketName, corsConfig)
-	// if err != nil {
-	// 	return fmt.Errorf("error setting CORS rules: %v", err)
-	// }
-	// log.Println("CORS rules set successfully")
 
 	return nil
+}
+
+func saveFileToDB(transactionID, fileName, filePath string) error {
+	query := `
+        INSERT INTO files (transaction_id, file_name, file_path)
+        VALUES ($1, $2, $3)
+    `
+	_, err := db.DB.Exec(query, transactionID, fileName, filePath)
+	return err
 }
 
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
@@ -107,14 +101,35 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
+	transactionID := r.FormValue("transactionID")
+	if transactionID == "" {
+		http.Error(w, "Transaction ID is required", http.StatusBadRequest)
+		return
+	}
+
 	bucketName := os.Getenv("MINIO_BUCKET_NAME")
-	objectName := header.Filename
+	objectName := fmt.Sprintf("transactions/%s/%s", transactionID, header.Filename)
 	contentType := header.Header.Get("Content-Type")
 
+	metadata := map[string]string{
+		"transactionID": transactionID,
+		"originalName":  header.Filename,
+	}
+
 	ctx := context.Background()
-	info, err := minioClient.PutObject(ctx, bucketName, objectName, file, header.Size, minio.PutObjectOptions{ContentType: contentType})
+	info, err := minioClient.PutObject(ctx, bucketName, objectName, file, header.Size, minio.PutObjectOptions{
+		ContentType:  contentType,
+		UserMetadata: metadata,
+	})
 	if err != nil {
 		http.Error(w, "Error uploading file to MinIO", http.StatusInternalServerError)
+		return
+	}
+
+	filepath := objectName
+	err = saveFileToDB(transactionID, header.Filename, filepath)
+	if err != nil {
+		http.Error(w, "Error saving file metadata to database", http.StatusInternalServerError)
 		return
 	}
 
