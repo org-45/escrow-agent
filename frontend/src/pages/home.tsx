@@ -238,7 +238,7 @@ const TransactionsTable = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {transactions.map(transaction => (
+                    {transactions?.map(transaction => (
                         <tr key={transaction.transaction_id}>
                             <td>{transaction.transaction_id}</td>
                             <td>{transaction.buyer_id}</td>

@@ -133,6 +133,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		UserMetadata: metadata,
 	})
 	if err != nil {
+		log.Printf("Failed to upload object to MinIO: %v\n", err)
 		http.Error(w, "Error uploading file to MinIO", http.StatusInternalServerError)
 		return
 	}
