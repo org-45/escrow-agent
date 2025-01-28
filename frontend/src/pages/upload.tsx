@@ -11,6 +11,7 @@ const FileUpload: React.FC = () => {
         }
     };
 
+
     const handleFileUpload = async (event: FormEvent) => {
         event.preventDefault();
         if (!file) {

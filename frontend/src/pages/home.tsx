@@ -15,6 +15,8 @@ const Home: React.FC<LogoutProps> = ({onLogout}) => {
         created_at: '2023-10-01T15:23:45Z',
     });
     const [error, setError] = useState<string | null>(null);
+    const [tID, setTID] = useState<string>('')
+    
     const router = useRouter();
 
 
@@ -47,6 +49,11 @@ const Home: React.FC<LogoutProps> = ({onLogout}) => {
         }
     };
 
+
+        const handleTransactionChange=(event: ChangeEvent<HTMLInputElement>)=>{
+            setTID(event.target.value)
+        }
+
     const handleFileUpload = async (event: FormEvent) => {
         event.preventDefault();
 
@@ -64,6 +71,7 @@ const Home: React.FC<LogoutProps> = ({onLogout}) => {
 
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('transactionID',tID)
 
         try {
             const response = await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/upload`, formData, {
@@ -94,6 +102,8 @@ const Home: React.FC<LogoutProps> = ({onLogout}) => {
             <h4>File upload</h4>
             <form onSubmit={handleFileUpload}>
                 <div>
+                <label>Transaction ID:</label>
+                <input type="number" onChange={handleTransactionChange} />
                     <input type="file" onChange={handleFileChange} />
                 </div>
                 <button type="submit">Upload File</button>
