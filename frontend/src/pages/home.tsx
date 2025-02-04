@@ -1,5 +1,5 @@
 import React, {ChangeEvent, FormEvent, useEffect, useState} from 'react';
-import { createEscrow, getTransactions, getUserDetails, User} from '../services/api';
+import { getUserDetails, User} from '../services/api';
 import {useRouter} from 'next/router';
 import axios from 'axios';
 
