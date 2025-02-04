@@ -28,12 +28,12 @@ CREATE OR REPLACE FUNCTION enforce_buyer_seller_roles()
 RETURNS TRIGGER AS $$
 BEGIN
     -- Ensure buyer has 'buyer' role
-    IF NOT EXISTS (SELECT 1 FROM users WHERE user_id = NEW.buyer_id AND role = 'buyer') THEN
+    IF NOT EXISTS (SELECT 1 FROM users WHERE user_id = NEW.buyer_id AND (role = 'buyer' or role = 'admin')) THEN
         RAISE EXCEPTION 'Invalid buyer_id: User is not a buyer';
     END IF;
 
     -- Ensure seller has 'seller' role
-    IF NOT EXISTS (SELECT 1 FROM users WHERE user_id = NEW.seller_id AND role = 'seller') THEN
+    IF NOT EXISTS (SELECT 1 FROM users WHERE user_id = NEW.seller_id AND (role = 'seller' or role = 'admin')) THEN
         RAISE EXCEPTION 'Invalid seller_id: User is not a seller';
     END IF;
 
