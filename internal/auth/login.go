@@ -9,14 +9,15 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
+	"github.com/google/uuid"
 )
 
 type User struct {
-	ID           int       `db:"user_id"`
-	Username     string    `db:"username"`
-	PasswordHash string    `db:"password_hash"`
-	Role         string    `db:"role"`
-	CreatedAt    time.Time `db:"created_at"`
+	ID           uuid.UUID 		`db:"user_id"`
+	Username     string    		`db:"username"`
+	PasswordHash string    		`db:"password_hash"`
+	Role         string    		`db:"role"`
+	CreatedAt    time.Time 		`db:"created_at"`
 }
 
 type UserCredentials struct {
@@ -25,9 +26,9 @@ type UserCredentials struct {
 }
 
 type Claims struct {
-	UserID   int    `json:"user_id"`
-	Username string `json:"username"`
-	Role     string `json:"role"`
+	UserID   uuid.UUID    	`json:"user_id"`
+	Username string 		`json:"username"`
+	Role     string 		`json:"role"`
 	jwt.RegisteredClaims
 }
 
@@ -40,8 +41,6 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
 	}
-
-	log.Printf("Retrieved credentials: %+v\n", creds)
 
 	var storedCreds User
 	err := db.DB.Get(&storedCreds, "SELECT user_id, username, password_hash, role FROM users WHERE username = $1", creds.Username)

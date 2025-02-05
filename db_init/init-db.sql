@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS users(
 	username VARCHAR(50) UNIQUE NOT NULL,
 	password_hash VARCHAR(255) NOT NULL,
     role user_role NOT NULL,
-	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ DEFAULT NOW(),
 
     -- indexes
     EXCLUDE USING hash (username WITH =)  -- Prevent even case-insensitive duplicates

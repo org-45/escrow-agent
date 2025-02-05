@@ -15,6 +15,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
+	"github.com/google/uuid"
 )
 
 func TestLoginHandler_Success(t *testing.T) {
@@ -28,11 +29,13 @@ func TestLoginHandler_Success(t *testing.T) {
 	sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
 	db.DB = sqlxDB
 
+	mockUUID := uuid.New()
+
 	passwordHash, _ := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
 	mock.ExpectQuery("SELECT user_id, username, password_hash, role FROM users").
 		WithArgs("testuser").
 		WillReturnRows(sqlmock.NewRows([]string{"user_id", "username", "password_hash", "role"}).
-			AddRow(1, "testuser", passwordHash, "buyer"))
+			AddRow(mockUUID, "testuser", passwordHash, "buyer"))
 
 	loginReq := auth.UserCredentials{
 		Username: "testuser",
@@ -72,11 +75,13 @@ func TestLoginHandler_InvalidPassword(t *testing.T) {
 	sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
 	db.DB = sqlxDB
 
+	mockUUID := uuid.New()
+
 	passwordHash, _ := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
 	mock.ExpectQuery("SELECT user_id, username, password_hash, role FROM users").
 		WithArgs("testuser").
 		WillReturnRows(sqlmock.NewRows([]string{"user_id", "username", "password_hash", "role"}).
-			AddRow(1, "testuser", passwordHash, "buyer"))
+			AddRow(mockUUID, "testuser", passwordHash, "buyer"))
 
 	loginReq := auth.UserCredentials{
 		Username: "testuser",
