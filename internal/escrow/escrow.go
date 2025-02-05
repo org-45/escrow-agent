@@ -9,7 +9,8 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-
+	
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
 
@@ -76,7 +77,7 @@ func DepositEscrowHandler(w http.ResponseWriter, r *http.Request) {
 		VALUES ($1, $2, 'held', NOW())
 		RETURNING escrow_id
 	`
-	var escrowID int
+	var escrowID uuid.UUID
 	err = db.DB.QueryRow(insertQuery, transactionID, req.Amount).Scan(&escrowID)
 	if err != nil {
 		log.Printf("[ERROR] Failed to deposit escrow for transaction ID %d: %v", transactionID, err)

@@ -7,14 +7,16 @@ import (
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 var jwtKey = []byte("my_secret_key")
 
+
 type Claims struct {
-	UserID   int    `json:"user_id"`
-	Username string `json:"username"`
-	Role     string `json:"role"`
+	UserID   uuid.UUID    	`json:"user_id"`
+	Username string 		`json:"username"`
+	Role     string 		`json:"role"`
 	jwt.RegisteredClaims
 }
 

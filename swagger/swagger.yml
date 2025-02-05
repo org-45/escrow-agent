@@ -132,7 +132,7 @@ paths:
               type: object
               properties:
                 seller_id:
-                  type: integer
+                  type: string
                   description: The ID of the seller
                   example: 2
                 amount:
@@ -192,7 +192,7 @@ paths:
             in: path
             required: true
             schema:
-              type: integer
+              type: string
             description: The ID of the transaction
         responses:
           '200':
@@ -223,7 +223,7 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
           description: The ID of the transaction
       responses:
         '200':
@@ -258,7 +258,7 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
           description: The ID of the transaction
       responses:
         '200':
@@ -293,7 +293,7 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
           description: The ID of the transaction
       requestBody:
         description: The amount to be deposited into escrow
@@ -320,7 +320,7 @@ paths:
                     type: string
                     example: Escrow deposit successful
                   escrow_id:
-                    type: integer
+                    type: string
                     example: 1
         '400':
           description: Bad request (invalid transaction or amount)
@@ -345,7 +345,7 @@ paths:
           required: true
           description: The ID of the transaction to release funds for
           schema:
-            type: integer
+            type: string
       responses:
         '200':
           description: Funds successfully released to the seller
@@ -402,7 +402,7 @@ paths:
           required: true
           description: The ID of the transaction to retrieve logs for
           schema:
-            type: integer
+            type: string
       responses:
         '200':
           description: A list of logs
@@ -451,7 +451,7 @@ paths:
           required: true
           description: The ID of the user to retrieve
           schema:
-            type: integer
+            type: string
       responses:
         '200':
           description: User details retrieved successfully
@@ -554,7 +554,7 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
           description: The ID of the transaction to list files for.
       responses:
         '200':
@@ -645,7 +645,7 @@ components:
       type: object
       properties:
         id:
-          type: integer
+          type: string
           example: 1
         username:
           type: string
@@ -821,7 +821,7 @@ components:
       type: object
       properties:
         id:
-          type: integer
+          type: string
           example: 1
         username:
           type: string
@@ -838,13 +838,13 @@ components:
       type: object
       properties:
         transaction_id:
-          type: integer
+          type: string
           example: 1
         buyer_id:
-          type: integer
+          type: string
           example: 2
         seller_id:
-          type: integer
+          type: string
           example: 3
         amount:
           type: number
@@ -863,10 +863,10 @@ components:
       type: object
       properties:
         log_id:
-          type: integer
+          type: string
           example: 1
         transaction_id:
-          type: integer
+          type: string
           example: 123
         event_type:
           type: string
@@ -883,10 +883,10 @@ components:
       type: object
       properties:
         id:
-          type: integer
+          type: string
           example: 1
         transaction_id:
-          type: integer
+          type: string
           example: 3
         file_name:
           type: string

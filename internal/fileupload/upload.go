@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"escrow-agent/internal/db"
+	"github.com/google/uuid"
 
 	"github.com/gorilla/mux"
 	"github.com/minio/minio-go/v7"
@@ -18,8 +19,8 @@ import (
 )
 
 type File struct {
-	ID            int       `json:"id"`
-	TransactionID int       `json:"transaction_id"`
+	ID            uuid.UUID       `json:"id"`
+	TransactionID uuid.UUID       `json:"transaction_id"`
 	FileName      string    `json:"file_name"`
 	FilePath      string    `json:"file_path"`
 	UploadedAt    time.Time `json:"uploaded_at"`

@@ -11,10 +11,11 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/google/uuid"
 )
 
 type CreateTransactionRequest struct {
-	SellerID int     `json:"seller_id"`
+	SellerID uuid.UUID     `json:"seller_id"`
 	Amount   float64 `json:"amount"`
 	Status   string  `json:"transaction_status,omitempty"`
 }
@@ -34,7 +35,7 @@ func CreateTransactionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//validation
-	if req.SellerID == 0 || req.Amount <= 0 {
+	if req.SellerID == uuid.Nil || req.Amount <= 0 {
 		http.Error(w, "Seller ID and valid amount are required", http.StatusBadRequest)
 		return
 	}

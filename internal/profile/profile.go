@@ -12,6 +12,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/crypto/bcrypt"
+	"github.com/google/uuid"
 )
 
 func ProfileHandler(w http.ResponseWriter, r *http.Request) {
@@ -38,7 +39,7 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getUserByID(db *sqlx.DB, userID int) (*models.User, error) {
+func getUserByID(db *sqlx.DB, userID uuid.UUID) (*models.User, error) {
 	var user models.User
 	err := db.Get(&user, "SELECT user_id, username, role, created_at FROM users WHERE user_id = $1", userID)
 	if err != nil {
