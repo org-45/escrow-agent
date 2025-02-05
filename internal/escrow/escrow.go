@@ -40,7 +40,7 @@ func DepositEscrowHandler(w http.ResponseWriter, r *http.Request) {
 
 	var transaction models.Transaction
 	query := `
-		SELECT transaction_id, buyer_id, seller_id, amount, status
+		SELECT transaction_id, buyer_id, seller_id, amount, transaction_status
 		FROM transactions
 		WHERE transaction_id = $1
 	`
@@ -72,7 +72,7 @@ func DepositEscrowHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	insertQuery := `
-		INSERT INTO escrow_accounts (transaction_id, escrowed_amount, status, created_at)
+		INSERT INTO escrow_accounts (transaction_id, escrowed_amount, escrow_status, created_at)
 		VALUES ($1, $2, 'held', NOW())
 		RETURNING escrow_id
 	`
@@ -119,13 +119,13 @@ func ReleaseEscrowHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = db.DB.Exec("UPDATE escrow_accounts SET status = 'released', escrowed_amount = 0 WHERE transaction_id = $1", transactionID)
+	_, err = db.DB.Exec("UPDATE escrow_accounts SET escrow_status = 'released', escrowed_amount = 0 WHERE transaction_id = $1", transactionID)
 	if err != nil {
 		http.Error(w, "Failed to update escrow status", http.StatusInternalServerError)
 		return
 	}
 
-	_, err = db.DB.Exec("UPDATE transactions SET status = 'completed', updated_at = NOW() WHERE transaction_id = $1", transactionID)
+	_, err = db.DB.Exec("UPDATE transactions SET escrow_status = 'completed', updated_at = NOW() WHERE transaction_id = $1", transactionID)
 	if err != nil {
 		http.Error(w, "Failed to update transaction status", http.StatusInternalServerError)
 		return

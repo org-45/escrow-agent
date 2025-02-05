@@ -16,7 +16,7 @@ import (
 type CreateTransactionRequest struct {
 	SellerID int     `json:"seller_id"`
 	Amount   float64 `json:"amount"`
-	Status   string  `json:"status,omitempty"`
+	Status   string  `json:"transaction_status,omitempty"`
 }
 
 func CreateTransactionHandler(w http.ResponseWriter, r *http.Request) {
@@ -44,9 +44,9 @@ func CreateTransactionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	query := `
-		INSERT INTO transactions (buyer_id, seller_id, amount, status, created_at, updated_at)
+		INSERT INTO transactions (buyer_id, seller_id, amount, transaction_status, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, NOW(), NOW())
-		RETURNING transaction_id, buyer_id, seller_id, amount, status, created_at, updated_at
+		RETURNING transaction_id, buyer_id, seller_id, amount, transaction_status, created_at, updated_at
 	`
 	var transaction models.Transaction
 	err := db.DB.QueryRowx(query, claims.UserID, req.SellerID, req.Amount, req.Status).StructScan(&transaction)
@@ -86,7 +86,7 @@ func GetTransactionsHandler(w http.ResponseWriter, r *http.Request) {
 
 	var transactions []models.Transaction
 	query := `
-		SELECT transaction_id, buyer_id, seller_id, amount, status, created_at, updated_at
+		SELECT transaction_id, buyer_id, seller_id, amount, transaction_status, created_at, updated_at
 		FROM transactions
 		WHERE buyer_id = $1 OR seller_id = $1
 		ORDER BY created_at DESC
@@ -123,7 +123,7 @@ func GetTransactionHandler(w http.ResponseWriter, r *http.Request) {
 
 	var transaction models.Transaction
 	query := `
-		SELECT transaction_id, buyer_id, seller_id, amount, status, created_at, updated_at
+		SELECT transaction_id, buyer_id, seller_id, amount, transaction_status, created_at, updated_at
 		FROM transactions
 		WHERE transaction_id = $1
 	`
@@ -165,7 +165,7 @@ func FulfillTransactionHandler(w http.ResponseWriter, r *http.Request) {
 
 	var transaction models.Transaction
 	query := `
-		SELECT transaction_id, buyer_id, seller_id, status
+		SELECT transaction_id, buyer_id, seller_id, transaction_status
 		FROM transactions
 		WHERE transaction_id = $1
 	`
@@ -189,7 +189,7 @@ func FulfillTransactionHandler(w http.ResponseWriter, r *http.Request) {
 
 	updateQuery := `
 		UPDATE transactions
-		SET status = 'deposited', updated_at = NOW()
+		SET transaction_status = 'deposited', updated_at = NOW()
 		WHERE transaction_id = $1
 	`
 	_, err = db.DB.Exec(updateQuery, transactionID)
@@ -236,7 +236,7 @@ func ConfirmDeliveryHandler(w http.ResponseWriter, r *http.Request) {
 
 	var transaction models.Transaction
 	query := `
-		SELECT transaction_id, buyer_id, seller_id, status
+		SELECT transaction_id, buyer_id, seller_id, transaction_status
 		FROM transactions
 		WHERE transaction_id = $1
 	`
@@ -260,7 +260,7 @@ func ConfirmDeliveryHandler(w http.ResponseWriter, r *http.Request) {
 
 	updateQuery := `
 		UPDATE transactions
-		SET status = 'completed', updated_at = NOW()
+		SET transaction_status = 'completed', updated_at = NOW()
 		WHERE transaction_id = $1
 	`
 	_, err = db.DB.Exec(updateQuery, transactionID)

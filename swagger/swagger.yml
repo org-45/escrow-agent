@@ -140,7 +140,7 @@ paths:
                   format: float
                   description: The transaction amount
                   example: 500.00
-                status:
+                transaction_status:
                   type: string
                   description: The status of the transactio, defaults to pending
                   example: pending
@@ -686,7 +686,7 @@ components:
         escrow_id:
           type: string
           description: "The ID of the newly created escrow transaction"
-        status:
+        escrow_status:
           type: string
           description: "The current status of the escrow"
         created_at:
@@ -709,7 +709,7 @@ components:
         amount:
           type: number
           description: "The amount of the escrow transaction"
-        status:
+        escrow_status:
           type: string
           description: "The current status of the escrow"
         created_at:
@@ -735,7 +735,7 @@ components:
         amount:
           type: number
           description: "The amount of the escrow transaction"
-        status:
+        escrow_status:
           type: string
           description: "The current status of the escrow, which is 'disputed'"
         created_at:
@@ -755,7 +755,7 @@ components:
         escrow_id:
           type: string
           description: "The ID of the escrow that was released"
-        status:
+        escrow_status:
           type: string
           example: "released"
           description: "The new status of the escrow after releasing the funds"
@@ -773,7 +773,7 @@ components:
         escrow_id:
           type: string
           description: "The ID of the escrow that was disputed"
-        status:
+        escrow_status:
           type: string
           example: "disputed"
           description: "The new status of the escrow after the dispute"
@@ -850,7 +850,7 @@ components:
           type: number
           format: float
           example: 100.50
-        status:
+        transaction_status:
           type: string
           example: "in_progress"
         created_at:
