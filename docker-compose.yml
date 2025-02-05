@@ -26,14 +26,16 @@ services:
     image: postgres:13
     container_name: escrow-agent-db
     environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
+      POSTGRES_DB: ${DB_NAME}  
+      POSTGRES_USER: ${DB_USER} 
       POSTGRES_PASSWORD: ${DB_PASSWORD}
+      TEST_DB_NAME: ${TEST_DB_NAME}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./db_init:/docker-entrypoint-initdb.d
+    entrypoint: ["/docker-entrypoint-initdb.d/entrypoint.sh"]
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "${DB_USER}"]
       interval: 10s
