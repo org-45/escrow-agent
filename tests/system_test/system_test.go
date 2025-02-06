@@ -1,6 +1,6 @@
-// +build integration
+// +build system
 
-package integration_test
+package system_test
 
 import(
 	"database/sql"
@@ -10,7 +10,7 @@ import(
 	_ "github.com/lib/pq"
 )
 
-func TestIntegrationFlow(t *testing.T){
+func TestSystemFlow(t *testing.T){
 
 	db := connectDB(t)
 	defer db.Close()
@@ -20,13 +20,18 @@ func TestIntegrationFlow(t *testing.T){
 
 	//create users
 
-	buyerID := createUser(t,db,"bs","some_hashed_password","buyer")
+	buyerID := createUser(t,db,"bd","some_hashed_password","buyer")
 	sellerID := createUser(t,db,"sd","some_hashed_password","seller")
 	adminID := createUser(t,db,"ad","some_hashed_password","admin")
 
 	t.Logf("Users created -> buyer=%s, seller=%s, admin=%s", buyerID, sellerID, adminID)
 
+
+	transactionID := simulateBuyerToSellerTransfer(t, db, buyerID, sellerID, 150.00)
+	t.Logf("Transaction created with ID: %s", transactionID)
+
 	verifyAllData(t, db)
+
 	t.Log("Integration test completed successfully!")
 
 
@@ -86,10 +91,25 @@ func createUser(t *testing.T, db *sql.DB, username,pwdHash, role string) string{
 	return userID
 }
 
+func simulateBuyerToSellerTransfer(t *testing.T, db *sql.DB, buyerID, sellerID string, amount float64) string {
+	var transactionID string
+	query := `
+		INSERT INTO transactions (buyer_id, seller_id, amount, escrow_status, transaction_status, updated_at)
+		VALUES ($1, $2, $3, 'pending', 'pending', NOW())
+		RETURNING transaction_id;
+	`
+	if err := db.QueryRow(query, buyerID, sellerID, amount).Scan(&transactionID); err != nil {
+		t.Fatalf("simulateMoneyTransfer failed: %v", err)
+	}
+	return transactionID
+}
+
 func verifyAllData(t *testing.T, db *sql.DB) {
 	t.Log("Verifying data in all tables...")
 
 	checkRowCount(t, db, "users")
+	checkRowCount(t, db, "transactions")
+
 
 	t.Log("Verification complete.")
 }
