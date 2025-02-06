@@ -1,20 +1,22 @@
 #!/bin/bash
 set -e
 
-# start PostgreSQL using the default entrypoint in the background.
-echo "Starting PostgreSQL using the default entrypoint..."
-/usr/local/bin/docker-entrypoint.sh postgres &
+echo "Starting PostgreSQL..."
+# Start the official PostgreSQL entrypoint (which initializes the main DB if needed)
+# in the background.
+exec /usr/local/bin/docker-entrypoint.sh postgres &
 
-
+# Wait for PostgreSQL to become available
 echo "Waiting for PostgreSQL to become available..."
-
-sleep 10
+until pg_isready -U "${POSTGRES_USER}" -d "${POSTGRES_DB}"; do
+    sleep 1
+done
 
 echo "PostgreSQL is ready!"
 
-
-echo "Running test-db.sh to create test database..."
+# Run the test database initialization script
+echo "Running test database initialization..."
 /docker-entrypoint-initdb.d/02-test-db.sh
 
-
+# Wait indefinitely (forward signals to the background process)
 wait

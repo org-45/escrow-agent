@@ -20,7 +20,7 @@ func TestIntegrationFlow(t *testing.T){
 
 	//create users
 
-	buyerID := createUser(t,db,"bd","some_hashed_password","buyer")
+	buyerID := createUser(t,db,"bs","some_hashed_password","buyer")
 	sellerID := createUser(t,db,"sd","some_hashed_password","seller")
 	adminID := createUser(t,db,"ad","some_hashed_password","admin")
 
@@ -54,26 +54,23 @@ func connectDB(t *testing.T) *sql.DB {
 	return db
 }
 
-func cleanTables(t *testing.T, db *sql.DB){
-
-	tables := []string{
-		"escrow_accounts",
-		"transaction_logs",
-		"files",
-		"disputes",
-		"payments",
-		"transactions",
-		"users",
-	}
-
-	for _,table := range tables{
-		_, error := db.Exec("TRUNCATE " + table + " CASCADE")
-		if error != nil{
-			t.Logf("Could not truncate table %s: %v", table, error)
-		}
-	}
-	t.Log("All tables truncated for a clean test scenario.")
+func cleanTables(t *testing.T, db *sql.DB) {
+    query := `
+        TRUNCATE escrow_accounts,
+                  transaction_logs,
+                  files,
+                  disputes,
+                  payments,
+                  transactions,
+                  users
+        RESTART IDENTITY CASCADE;
+    `
+    if _, err := db.Exec(query); err != nil {
+        t.Fatalf("Could not truncate tables: %v", err)
+    }
+    t.Log("All tables truncated for a clean test scenario.")
 }
+
 
 func createUser(t *testing.T, db *sql.DB, username,pwdHash, role string) string{
 	var userID string
