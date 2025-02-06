@@ -184,3 +184,24 @@ CREATE TRIGGER transactions_role_check
 BEFORE INSERT OR UPDATE ON transactions
 FOR EACH ROW
 EXECUTE FUNCTION enforce_buyer_seller_roles();
+
+
+--trigger for when escrow_account has status set to released then update that on transactions table too
+
+CREATE OR REPLACE FUNCTION update_transaction_escrow_status()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Check if escrow_account status changed to 'released'
+    IF NEW.status = 'released' THEN
+        UPDATE transactions
+           SET escrow_status = 'released'
+         WHERE escrow_account_id = NEW.escrow_account_id;
+    END IF;
+    RETURN NEW; -- Return the new row so the UPDATE on escrow_account completes
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER after_escrow_account_update
+AFTER UPDATE ON escrow_account
+FOR EACH ROW
+EXECUTE PROCEDURE update_transaction_escrow_status();
