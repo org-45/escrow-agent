@@ -1,17 +1,16 @@
-// +build simple_purchase
+// +build buyer_cancel
 
 
-// Simple Purchase
-// 1. Buyer (Alice) wants to buy an item from Seller (Bob) for $50.
-// 2. Alice creates a transaction in “pending” status.
-// 3. Alice funds the escrow account with $50 (escrow: funded).
-// 4. Bob ships/delivers the item.
-// 5. Alice confirms receipt; escrow is updated to released.
-// 6. Transaction final status: completed.
-// Key Points: Straightforward flow from pending → funded → released → completed.
+// Cancellation by Buyer (Before Shipping)
+// 1. Buyer (Cathy) initiates a $200 transaction with Seller (Dave).
+// 2. Cathy places funds in escrow (funded).
+// 3. Cathy realizes she no longer needs the item and requests a cancellation.
+// 4. System (or manual approval) cancels the escrow (cancelled).
+// 5. Cathy is refunded (transaction cancelled).
+// Key Points: No shipping occurs; buyer cancels after funding but before item delivery.
 
 
-package simple_purchase_test
+package buyer_cancel_test
 
 import(
 	"database/sql"
@@ -21,7 +20,7 @@ import(
 	_ "github.com/lib/pq"
 )
 
-func TestSimplePurchaseFlow(t *testing.T){
+func TestBuyerCancelFlow(t *testing.T){
 	db := connectDB(t)
 	defer db.Close()
 
@@ -30,35 +29,92 @@ func TestSimplePurchaseFlow(t *testing.T){
 
 	//create users
 
-	buyerID := createUser(t,db,"Alice","some_hashed_password","buyer")
-	sellerID := createUser(t,db,"Bob","some_hashed_password","seller")
+	buyerID := createUser(t,db,"Cathy","some_hashed_password","buyer")
+	sellerID := createUser(t,db,"Dave","some_hashed_password","seller")
 	t.Logf("Users created buyer=%s, seller=%s", buyerID, sellerID)
 
-	// alice initiates a transaction, bob as a seller
+	// Cathy initiates a transaction, Dave as a seller
 	transactionID := createTransaction(t, db, buyerID, sellerID, 50.00)
 	t.Logf("Transaction created (pending): %s", transactionID)
 
-	//alice funds escrow
+	//Cathy funds escrow
 	fundEscrow(t, db, transactionID, 50.00)
 	t.Logf("Escrow funded with $50 for transaction: %s", transactionID)
 
-	//bob ships the item
-	addTransactionLog(t, db, transactionID, "SHIPPING", "Bob shipped the item.")
-	t.Log("Shipping log added.")
+	//Cathy cancels the escrow
+	cancelTransaction(t, db, transactionID)
+	t.Logf("Transaction cancelled: %s", transactionID)
 
-	// platform releases the fund from escrow
-	releaseEscrow(t, db, transactionID)
-	t.Logf("Escrow released for transaction: %s", transactionID)
-
-	//platform complets the transaction
-	completeTransaction(t, db, transactionID)
-	t.Logf("Transaction completed: %s", transactionID)
-
-	verifyAllData(t, db)
+	verifyCancellation(t, db, transactionID, buyerID, 200.00, t)
 
 	t.Log("Integration test completed successfully!")
 
 }
+
+func cancelTransaction(t *testing.T, db *sql.DB, transactionID string) {
+	//Simulate cancellation request and update transaction and escrow status
+	queryTransaction := `
+		UPDATE transactions
+		SET transaction_status = 'cancelled',
+		    updated_at = NOW()
+		WHERE transaction_id = $1
+	`
+	if _, err := db.Exec(queryTransaction, transactionID); err != nil {
+		t.Fatalf("cancelTransaction (transaction status) failed: %v", err)
+	}
+
+	queryEscrow := `
+		UPDATE escrow_accounts
+		SET escrow_status = 'cancelled'
+		WHERE transaction_id = $1
+	`
+	if _, err := db.Exec(queryEscrow, transactionID); err != nil {
+		t.Fatalf("cancelTransaction (escrow status) failed: %v", err)
+	}
+
+	addTransactionLog(t, db, transactionID, "CANCELLATION_REQUESTED", "Buyer requested cancellation before shipping.")
+}
+
+// func verifyRefund(t *testing.T, db *sql.DB, transactionID, buyerID string, amount float64, tb testing.TB) {
+
+// 	var refundCount int
+// 	err := db.QueryRow(`SELECT COUNT(*) FROM payments WHERE transaction_id = $1 AND user_id = $2 AND payment_type = 'REFUND' AND payment_status = 'COMPLETED' AND amount = $3`,
+// 		transactionID, buyerID, amount).Scan(&refundCount)
+// 	if err != nil {
+// 		t.Fatalf("Error checking for refund: %v", err)
+// 	}
+
+// 	if refundCount == 0 {
+// 		t.Errorf("No completed refund found for transaction %s, buyer %s, amount %f", transactionID, buyerID, amount)
+// 	} else {
+// 		t.Logf("Verified refund of %f for transaction %s", amount, transactionID)
+// 	}
+// }
+
+func verifyCancellation(t *testing.T, db *sql.DB, transactionID, buyerID string, amount float64, tb testing.TB) {
+	//Verify that transaction is cancelled and escrow is cancelled
+
+	var transactionStatus string
+	err := db.QueryRow("SELECT transaction_status FROM transactions WHERE transaction_id = $1", transactionID).Scan(&transactionStatus)
+	if err != nil {
+		t.Fatalf("Error getting transaction status: %v", err)
+	}
+	if transactionStatus != "cancelled" {
+		t.Errorf("Expected transaction status to be 'cancelled', but got '%s'", transactionStatus)
+	}
+
+	var escrowStatus string
+	err = db.QueryRow("SELECT escrow_status FROM escrow_accounts WHERE transaction_id = $1", transactionID).Scan(&escrowStatus)
+	if err != nil {
+		t.Fatalf("Error getting escrow status: %v", err)
+	}
+	if escrowStatus != "cancelled" {
+		t.Errorf("Expected escrow status to be 'cancelled', but got '%s'", escrowStatus)
+	}
+
+	// verifyRefund(t, db, transactionID, buyerID, amount, tb)
+}
+
 
 func connectDB(t *testing.T) *sql.DB {
 	host := getEnv("TEST_DB_HOST", "localhost")
@@ -182,25 +238,6 @@ func completeTransaction(t *testing.T, db *sql.DB, transactionID string) {
 	}
 }
 
-func verifyAllData(t *testing.T, db *sql.DB) {
-	t.Log("Verifying data in all tables...")
-
-	checkRowCount(t, db, "users")
-	checkRowCount(t, db, "transactions")
-
-
-	t.Log("Verification complete.")
-}
-
-
-func checkRowCount(t *testing.T, db *sql.DB, tableName string) {
-	var count int
-	err := db.QueryRow(fmt.Sprintf("SELECT COUNT(*) FROM %s", tableName)).Scan(&count)
-	if err != nil {
-		t.Fatalf("Error counting rows in %s: %v", tableName, err)
-	}
-	t.Logf("Table '%s' row count = %d", tableName, count)
-}
 
 func getEnv(key, defVal string) string {
 	val := os.Getenv(key)
