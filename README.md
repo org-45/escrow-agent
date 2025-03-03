@@ -3,84 +3,23 @@
 Question: What's OESD ? \
 Answer: Over Engineered Software Development.
 
-
 ![coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/org-45/escrow-agent/main/badge.json)
-
-
-
-| Method | Endpoint        | Description                                      |
-|--------|-----------------|--------------------------------------------------|
-| POST   | `/register`      | Register a new user (buyer, seller, or admin)    |
-| POST   | `/login`         | Log in a user and return a JWT token             |
-| GET    | `/profile`       | Get the logged-in user's profile                 |
-| PUT    | `/profile`       | Update the logged-in user's profile (username, etc.)|
-
-
-
-
-| Method | Endpoint                     | Description                                                       |
-|--------|------------------------------|-------------------------------------------------------------------|
-| POST   | `/transactions`               | Create a new transaction (by buyer)                               |
-| GET    | `/transactions`               | Get a list of all transactions for the logged-in user (buyer/seller)|
-| GET    | `/transactions/{id}`          | Get details of a specific transaction                             |
-| PUT    | `/transactions/{id}/fulfill`  | Mark a transaction as fulfilled (by seller)                       |
-| PUT    | `/transactions/{id}/confirm`  | Confirm the delivery of a product or service (by buyer)            |
-
-
-
-
-
-| Method | Endpoint                        | Description                                                       |
-|--------|----------------------------------|-------------------------------------------------------------------|
-| POST   | `/escrow/{transaction_id}/deposit` | Deposit funds into escrow for a transaction (by buyer)            |
-| PUT    | `/escrow/{transaction_id}/release` | Release funds from escrow to seller (by system or admin)          |
-| PUT    | `/escrow/{transaction_id}/refund`  | Refund funds from escrow to buyer (by system or admin)            |
-| GET    | `/escrow/{transaction_id}`         | Get details of the escrow account for a specific transaction       |
-
-
-
-
-| Method | Endpoint                      | Description                                                      |
-|--------|-------------------------------|------------------------------------------------------------------|
-| POST   | `/transactions/{id}/dispute`   | Raise a dispute for a specific transaction (by buyer or seller)  |
-| GET    | `/disputes`                    | Get a list of all disputes for the logged-in user (buyer/seller) |
-| GET    | `/disputes/{id}`               | Get details of a specific dispute                                |
-| PUT    | `/disputes/{id}/resolve`       | Resolve a dispute (by admin)                                     |
-
-
-
-| Method | Endpoint                          | Description                                                     |
-|--------|-----------------------------------|-----------------------------------------------------------------|
-| GET    | `/admin/users`                    | Get a list of all users                                         |
-| GET    | `/admin/users/{id}`               | Get details of a specific user                                  |
-| GET    | `/admin/transactions`             | Get a list of all transactions                                  |
-| GET    | `/admin/transactions/{id}`        | Get details of a specific transaction                           |
-| PUT    | `/admin/transactions/{id}/release`| Manually release funds from escrow (by admin)                   |
-| PUT    | `/admin/transactions/{id}/refund` | Manually refund funds to buyer (by admin)                       |
-| GET    | `/admin/disputes`                 | Get a list of all disputes                                      |
-| PUT    | `/admin/disputes/{id}/resolve`    | Resolve a dispute (by admin)                                    |
-
-
-| Method | Endpoint                        | Description                                                     |
-|--------|---------------------------------|-----------------------------------------------------------------|
-| GET    | `/logs/{transaction_id}`         | Get a list of all logs for a specific transaction                |
-
 
 #### Overview
 This project is an open-source general-purpose escrow agent designed to facilitate secure transactions between buyers and sellers. The escrow agent ensures that funds are only released when the buyer confirms that the agreed-upon services or goods have been delivered. The platform is built to support multiple payment gateways with a flexible, plug-and-play architecture, making it easy for contributors to add their preferred gateways.
 
 #### Key Components
-1. **Escrow Software**  
-   Manages the escrow process between buyers and sellers.  
+1. **Escrow Software**
+   Manages the escrow process between buyers and sellers.
    Holds and releases funds based on buyer confirmation.
 
-2. **Payment Gateway Integration**  
-   Supports multiple payment gateways with a plug-and-play architecture.  
+2. **Payment Gateway Integration**
+   Supports multiple payment gateways with a plug-and-play architecture.
    Contributors can add additional payment gateways as needed.
 
-3. **Conflict Resolution Support**  
-   Basic documentation and reporting to manage conflicts.  
-   Stores requirement specifications, agreements, and related documents for conflict escalation.  
+3. **Conflict Resolution Support**
+   Basic documentation and reporting to manage conflicts.
+   Stores requirement specifications, agreements, and related documents for conflict escalation.
    Conflict resolution can be outsourced to a specialized operational department (outside the scope of this project).
 
 #### Features
@@ -100,43 +39,86 @@ This project is an open-source general-purpose escrow agent designed to facilita
   - The platform is designed for flexibility, allowing the integration of various payment gateways.
   - **Goal**: Build a comprehensive solution that contributors can extend, particularly for specific gateways.
 
-#### How to run?
+#### Running the Application
 
-```
-docker compose up --build -d
+1.  **Start the Application with Docker Compose:**
 
-You will see swagger on localhost:8081
-```
+    ```bash
+    docker compose up --build -d
+    ```
 
-```
-curl -X POST http://localhost:8080/signup \
--H "Content-Type: application/json" \
--d '{
-      "username": "testuser",
-      "password": "testpassword"
-    }'
-```
+    This command builds the Docker images and starts the application in detached mode.
 
-```
-curl -X POST http://localhost:8080/login \
--H "Content-Type: application/json" \
--d '{
-      "username": "testuser",
-      "password": "testpassword"
-    }'
+2.  **Access Swagger UI:**
 
-```
+    Once the application is running, you can access the Swagger UI at `http://localhost:8081`.  This provides a visual interface for exploring and interacting with the API endpoints.
 
-```
-curl -X POST http://localhost:8080/api/escrow \
--H "Content-Type: application/json" \
--H "Authorization: Bearer your-jwt-token" \
--d '{
-      "buyer_id": "buyer123",
-      "seller_id": "seller456",
-      "amount": 500.0,
-      "description": "Payment for services"
-    }'
-```
+#### Testing
 
-This project is tested with BrowserStack 
+This project incorporates several testing strategies to ensure code quality and application reliability.
+
+1.  **Unit Tests:**
+
+    Unit tests verify the functionality of individual components or functions in isolation.  To run the unit tests, execute the following command:
+
+    ```bash
+    go test ./...
+    ```
+
+    This command will run all tests in the project directory and its subdirectories. Code coverage is reported to ensure the majority of code paths are being tested.
+
+2.  **Scenario Tests (Integration Tests):**
+
+    Scenario tests, also known as integration tests, validate the interactions between different components of the system. They ensure that the components work together correctly to achieve specific use cases.  These tests typically involve setting up a test environment (e.g., a test database), executing a series of actions, and verifying the expected results.
+
+    The following integration test scenarios are defined:
+
+    *   **`buyer_cancel`:** Tests the scenario where a buyer cancels a transaction before the seller fulfills it.
+    *   **`dispute_buyer_wins`:** Tests the scenario where a buyer raises a dispute and the dispute is resolved in their favor.
+    *   **`dispute_seller_wins`:** Tests the scenario where a buyer raises a dispute and the dispute is resolved in the seller's favor.
+    *   **`escrow_extended`:** Tests the scenario where the escrow period is extended.
+    *   **`high_value_approval`:** Tests the scenario where a high-value transaction requires administrative approval.
+    *   **`seller_cancel`:** Tests the scenario where a seller cancels a transaction before fulfilling it.
+    *   **`simple_purchase`:** Tests the basic purchase flow (buyer creates transaction, seller fulfills, buyer confirms).
+
+    To run scenario tests:
+
+    *   **Prerequisites:** Ensure a test PostgreSQL database is running and accessible. Configure the database connection details (host, port, username, password, database name) in the appropriate test configuration file.
+    *   **Execute the tests:**
+
+        To run *all* integration tests:
+
+        ```bash
+        go test -tags=integration ./...
+        ```
+
+        To run a *specific* integration test (e.g., `simple_purchase`):
+
+        ```bash
+        go test -tags=integration,simple_purchase ./...
+        ```
+
+        To run *multiple specific* integration tests (e.g., `simple_purchase` and `buyer_cancel`):
+
+         ```bash
+        go test -tags=integration,simple_purchase,buyer_cancel ./...
+        ```
+
+        The `-tags` flag tells the `go test` command to only run tests that are tagged with the specified build tags. This allows you to selectively run integration tests.  If you specify multiple tags, the test must have *all* of those tags to be run.
+
+3.  **Endpoint Testing with Swagger UI:**
+
+    The Swagger UI at `http://localhost:8081` can be used to manually test the API endpoints. This is useful for verifying that the API is working as expected and for exploring the API's functionality.
+
+    *   **Start the Application:** Ensure the application is running using `docker compose up --build -d`.
+    *   **Open Swagger UI:** Navigate to `http://localhost:8081` in your web browser.
+    *   **Interact with Endpoints:** Use the Swagger UI to send requests to the API endpoints and verify the responses. You can expand each endpoint to see its parameters, request body, and response schemas.
+
+#### Next Steps (For Contributors)
+
+*   **Explore the Codebase:** Familiarize yourself with the project's structure and code.
+*   **Add Payment Gateway Integrations:** Contribute integrations for additional payment gateways.
+*   **Improve Testing:** Expand the existing test suite to cover more code paths and scenarios.  Pay special attention to adding tests for the conflict resolution process.
+*   **Enhance Conflict Resolution:** Implement more sophisticated conflict resolution mechanisms.
+
+This project is tested with BrowserStack
